@@ -56,8 +56,12 @@ drop if cases == . | deaths == .
 separate deaths, by(race) veryshortlabel
 
 // version 1: top+right margin -------------------------------------
-// note: run the code chunk (from 'local alpha' to 'twoway histogram cases')
+// note: 
+// (1) run the code chunk (from 'local alpha' to 'twoway histogram cases')
 // at once to make sure the local variables can be used by all three plots
+// (2) the opacity settings (e.g. `mcolor(red%30)`) are only available in 
+// STATA15 or above. For STATA14 or below, try using hollow circles instead 
+// of solid ones by adding the option `msymbol(Oh)`.
 
 // create the main plot
 local alpha %30
