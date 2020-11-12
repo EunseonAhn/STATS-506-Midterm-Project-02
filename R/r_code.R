@@ -2,6 +2,11 @@
 ## Stats506, F20
 ## Group2: EunSeon Ahn, Tianshi Wang, Yanyu Long
 ##
+## Visualization of COVID-19 Data:
+##   	1) Marginal plot
+##   	2) Bubble plot
+##    3) Interactive plot
+## 
 ## Author: Yanyu Long, longyyu@umich.edu
 ## Updated: November 12, 2020
 
