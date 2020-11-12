@@ -77,12 +77,19 @@ pic1 = pic1_main +
   theme(legend.position = "left") # move legend to the left side
   # because ggMarginal() add margin plots on the right side
 
+# marginal histogram
 ggExtra::ggMarginal(
   pic1, type="histogram", 
   groupColour = TRUE, groupFill = TRUE
 )
 
-# for more available options, checkout the tutorial
+# marginal boxplot
+ggExtra::ggMarginal(
+  pic1, type="boxplot", size = 5,
+  # `size` specifies the relative size of the main plot 
+  # to the marginal ones
+  groupColour = TRUE, groupFill = TRUE
+)
 
 #### method2 - Cowplot
 
