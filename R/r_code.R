@@ -316,8 +316,8 @@ print(plot3_base)
   } %>%
   plotly::ggplotly()
 
-# note that when the mouse hover over a bar
-# the `value` presented is still the original value before scaling
+# note that when the mouse hovers over a bar
+# the value presented will still be the original value before scaling
 # so we can know the exact value without referencing y-axis labels
 
 ### adjust the legend position in interactive plot
