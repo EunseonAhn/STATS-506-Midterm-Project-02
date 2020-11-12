@@ -91,7 +91,7 @@ pic1_xhist = cowplot::axis_canvas(pic1_main, axis = "x") +
   geom_histogram(
     data = plot1_data %>% filter(!is.na(Cases) & !is.na(Deaths)), 
     aes(x = Cases, fill = Race, color = Race),
-    alpha = .6
+    bins = 30, alpha = .6
   ) +
   scale_fill_brewer(palette = palette_picked) +
   scale_color_brewer(palette = palette_picked)
@@ -101,7 +101,7 @@ pic1_yhist = cowplot::axis_canvas(pic1_main, axis = "y", coord_flip = TRUE) +
   geom_histogram(
     data = plot1_data %>% filter(!is.na(Cases) & !is.na(Deaths)), 
     aes(x = Deaths, fill = Race, color = Race),
-    alpha = .6
+    bins = 30, alpha = .6
   ) +
   scale_fill_brewer(palette = palette_picked) +
   scale_color_brewer(palette = palette_picked) +
