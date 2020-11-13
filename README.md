@@ -17,20 +17,17 @@ COVID-19 has caused significant impact on the vast majority of individuals aroun
 ### Source Files
 Here are some quck links toward core parts of source files:
 <br/> 
-#### &emsp; R
-&emsp; [Code](./R/r_code.R) <br/> 
-#### &emsp; STATA
-&emsp; [Code](./STATA/stata_code.do) <br/>
-#### &emsp; Python
-&emsp; [Code](./Python/Python_Code.ipynb) <br/> 
-#### &emsp; MATLAB
-&emsp; [Code_BubblePlot](./MATLAB/bubbleplot_new.m) <br/>
-&emsp; [Code_InteractivePlot](./MATLAB/interactve_plots.m) <br/>
-&emsp; [Code_MarginalHistogram](./MATLAB/marginal_histogram.m) <br/>
+* **R** &emsp;&emsp;&emsp;[Code](./R/r_code.R) <br/> 
+* **STATA**   &emsp;[Code](./STATA/stata_code.do) <br/>
+* **Python**  &emsp;[Code](./Python/Python_Code.ipynb) <br/> 
+* **MATLAB** 
+   + [Code_BubblePlot](./MATLAB/bubbleplot_new.m) <br/>
+   + [Code_InteractivePlot](./MATLAB/interactve_plots.m) <br/>
+   + [Code_MarginalHistogram](./MATLAB/marginal_histogram.m) <br/>
  
 
 ### Code Review
-
+All groups members reviewed other's code and process and then finalized our work. Feel free to check the pull requests/commits in our repository to find the record of code reviewing. 
 
 ### Collaboration
 Intermediate work of the draft is documented in Google Docs [here](https://docs.google.com/document/d/1Ll_wvns7VoLCHO6lnm5YkAHmTlGQXR6Xjt7Tj-3cLvI/edit#).
