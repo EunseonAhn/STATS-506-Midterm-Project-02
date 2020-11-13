@@ -4,7 +4,6 @@
 * Yanyu Lang 
 * Tianshi Wang
 
-<br/> 
 
 ### Data Visualization of COVID-19 Data
 Source| Dataset
@@ -14,7 +13,6 @@ COVID-19 World Data | [Link](https://ourworldindata.org/covid-hospitalizations)
 
 COVID-19 has caused significant impact on the vast majority of individuals around the globe. It becomes meaningful to discover underlying patterns among different regions and different group of people by analyzing and visualizing the data of COVID-19. As a tutorial focusing on **Graph**, we used these two datasets to demonstrate the importance of data visualization to understand the patterns in the data. We will walk through how to generate **marginal histograms**, **bubble plots**, and **interactive plots** in R, Stata, Python, and MATLAB. 
  
-<br/> 
 
 ### Source Files
 Here are some quck links toward core parts of source files:
@@ -29,7 +27,6 @@ Here are some quck links toward core parts of source files:
 &emsp; [Code_BubblePlot](./MATLAB/bubbleplot_new.m) <br/>
 &emsp; [Code_InteractivePlot](./MATLAB/interactve_plots.m) <br/>
 &emsp; [Code_MarginalHistogram](./MATLAB/marginal_histogram.m) <br/>
-
-<br/>  
+ 
 
 ### Code Review
