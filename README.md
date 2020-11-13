@@ -23,7 +23,7 @@ Here are some quck links toward core parts of source files:
 <br/> 
 * **R** &emsp;[Code](./R/r_code.R) <br/> 
 * **STATA**  &emsp;[Code](./STATA/stata_code.do) <br/>
-* **Python** &emsp;[Code](./Python/Python_Code.ipynb) <br/> 
+* **Python** &emsp;[Code](./Python/Python-Part.ipynb) <br/> 
 * **MATLAB** 
    + [Code_BubblePlot](./MATLAB/bubbleplot_new.m) <br/>
    + [Code_InteractivePlot](./MATLAB/interactve_plots.m) <br/>
