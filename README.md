@@ -30,3 +30,9 @@ Here are some quck links toward core parts of source files:
  
 
 ### Code Review
+
+
+### Collaboration
+Project draft (text part) is documented in Google Docs [here](https://docs.google.com/document/d/1Ll_wvns7VoLCHO6lnm5YkAHmTlGQXR6Xjt7Tj-3cLvI/edit#).
+Collaboration is conducted through github, e-mails, commenting on the shared Google Docs document linked above.
+
