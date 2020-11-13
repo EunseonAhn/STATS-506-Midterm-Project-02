@@ -1,0 +1,1498 @@
+---
+title: "STATS506 Midterm Project"
+author: "[Group2](https://github.com/SkyWang0919/STATS-506-Midterm-Project-02): EunSeon Ahn, Tianshi Wang, Yanyu Long"
+date: "November 13, 2020"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+---
+
+```{css, include = TRUE, echo = FALSE}
+body{ /* Normal */
+  font-size: 15px;
+}
+td{ /* Table  */
+  font-size: 13px;
+}
+#TOC{ /* Table of contents */
+  font-size: 16px;
+}
+span.math{ /* Formulas */
+  font-size: 13px;
+}
+h2{ /* Header 2 */
+  font-size: 28px;
+}
+h3{ /* Header 3 */
+  font-size: 22px;
+}
+h5{ /* Header 5 */
+  font-size: 18px;
+  text-decoration: underline;
+}
+blockquote {
+  font-size: 14px;
+}
+pre { /* Scrollable code block */
+  max-height: 300px;
+  overflow-y: auto;
+}
+.plotly{ /* Figures generated with plotly - align center */
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+```
+
+
+```{r setup, include=FALSE}
+setwd("E:/git/Stats506_private/group_proj/")
+library(tidyverse)
+knitr::opts_chunk$set(
+	echo = TRUE,
+	fig.align = "center",
+	warning = FALSE,
+	message = FALSE,
+	include = TRUE
+)
+library(reticulate) # for python syntax highlighting
+use_python("D:/Anaconda3/python.exe")
+# library(Statamarkdown) # for stata
+```
+
+
+```{python python_setup, include = FALSE}
+import os
+os.chdir("E:/git/Stats506_midterm_project/")
+import pandas as pd
+pd.set_option('max_columns', None)
+```
+
+
+```{r html_table_wrapup, echo = FALSE}
+format_table = function(table, full_wid = FALSE,
+                        collapse_col = NA, ...){
+  # specify table format for HTML output file
+  # Inputs: 
+  #   table - the table to adjust format
+  #   full_wid - logical, whether the table will have full width
+  #     if FALSE, will set a minimum width of 12em
+  #   collapse_col - vector, or NA
+  #     if NA, will not collapse rows
+  #     if vector, collapse rows for the specified columns if possible
+  #   ... - extra parameters to be passed into knitr::kable()
+  # Output: the reformatted table
+  
+  min_wid = ifelse(full_wid, NA, "6em") # minimal width for columns
+  table = table %>%
+    knitr::kable(
+      format = 'html', 
+      escape = FALSE, 
+      ...
+    ) %>%
+    kableExtra::row_spec(row = 0, align = "c") %>%
+    kableExtra::column_spec(
+      column = 1:length(table), 
+      width_min = min_wid,
+      extra_css = "vertical-align:middle;")
+  if (!is.na(collapse_col)){
+    table = table %>%
+      kableExtra::collapse_rows(columns = collapse_col, valign = "middle")
+  }
+  table = table %>%
+    kableExtra::kable_styling('striped', full_width = full_wid)
+  return(table)
+}
+```
+
+
+## Introduction
+Given the high relevance of COVID-19 in 2020 and the impact it has on the vast majority of individuals around the globe, staying informed regarding the current status and spread of COVID around the world has become a daily task for many people. While the severity of the situation necessitates daily monitoring and continuous tracking of the virus, generating enormous amounts of data each day, this also makes it easy for the general population to be overwhelmed by the overabundance of COVID-related data made available from the scientific community. When dealing with such the issue of big datasets, data visualization can serve the critical function of making large data more accessible and comprehensible to the public and the decision makers at large. In our project, we will explore a few of these different graphical concepts that may facilitate a better understanding of the large amounts of information and see how such concepts can turn simple numbers into a relevant narrative. 
+
+In this project, we use datasets from two different sources.  
+
+>*  [The COVID Racial Data Tracker](https://covidtracking.com/race)  
+*  [Coronavirus (COVID-19) Hospitalizations & Preventative 
+Measures](https://ourworldindata.org/covid-hospitalizations)
+
+
+**The first dataset**, containing racial and ethnic data on COVID-19 cases in the United States, comes from a collaboration between COVID Tracking Project and Boston University Center for Antiracist Research. 
+This racial COVID data include the number of cases and deaths for different races and ethnicities that are reported across all 50 states.
+For this first dataset, <span style="color:SteelBlue">marginal histogram</span> is used to visualize whether COVID-19 affects different races disproportionately across the US.  
+
+**The second dataset** comes from Our World in Data, which gathers COVID-19 data from various government agencies across the globe. 
+In addition to reporting more basic measures such as the number of cases, deaths, hospitalization, testing, etc., this dataset also includes social measures such as the government stringency index and the human development index. 
+*The government stringency index* is calculated by considering various restrictions the government imposes on the citizens such as wearing a mask in public, workplace closure, international travel ban, etc. 
+*The human development index* is calculated by considering various measures of achievement in key dimensions of human development in the country such as life expectancy and standard of living. 
+
+With this dataset, we’ll first demonstrate the usage of bubble plots. 
+<span style="color:SteelBlue">Bubble plot</span> allows plotting of more than 2 variables with the weight or size of the bubble serving as the 3rd axis, and will be used to visualize the relationship between these social measures and the number of COVID-19 deaths in a country. 
+
+Using the same dataset, we’ll also demonstrate how to create an interactive plot. 
+<span style="color:SteelBlue">Interactive plot</span> allows users to manipulate the ways in which the data can be viewed. Some of the ways in which one can interact with the plot may be as simple as being able to zoom in and out of different sections of the plot, include or exclude certain variables in the plot, or click on a particular bar or point to see the actual value. We will walk through the implementation of these mentioned interactive functions into our plots. This interactive plot will be a bar graph showing the number of COVID-19 cases, deaths, hospitalizations, and testing numbers in 5 different Eastern European countries. 
+
+### Software/Tools
+In this tutorial, we are using R, STATA, MATLAB and Python to show how these graphical concepts may be implemented.  
+
+*  For R, the following libraries were used: `tidyverse` (manipulation of data), `ggplot2` (plotting), `Cowplot` (plotting), `ggplotly` (adding interactive functionality)
+*  For MATLAB, there are no specific “libraries” as these functions are all built-in to the main MATLAB software. To add the interactive functionality, `Clickable Legend Toolbox` was downloaded from MATLAB File Exchange
+*  For Python, the following libraries were used: `numpy` (manipulation of data) , `pandas` (manipulation of data), `matplotlib` (plotting), `seaborn` (plotting), `plotly` (adding interactive functionality)
+*  For STATA, the built-in command `scatter` and `twoway histogram` are used to create the three subplots in marginal plots, and user-written command `grc1leg` is used to combine these subplots into one figure with a command legend. `Scatter` is also used to create the bubble plot.
+
+
+### To-do List  
+The following tasks are yet to be finished:  
+
+*  General requirements
+    *  Include references, if any
+    *  R & STATA & Python: add more inline comments to help understand the data
+*  Marginal plots
+    *  STATA: Look into the implementation of stacked histogram
+    *  MATLAB: Implement marginal plots with `scatterhistogram`
+*  Interactive plots
+    *  MATLAB: Add a GIF of the interaction
+    *  MATLAB: Go into the optional parameter settings for `clickableLegend`
+
+
+## Marginal Histogram {.tabset .tabset-pills}
+
+*  Variables
+    *  *ID: State & Date*
+    *  Race
+    *  #Cases
+    *  #Deaths
+*  This figure presents only the **Nov 1, 2020** data.  
+*  The Race Data Entry file specifies 9 different racial and ethnicity categories: White, Black, LatinX (Hispanic or Latino), Asian, AIAN (American Indian or Alaska Native), NHPI (Native Hawaiian and Pacific Islander), Multiracial, Other, and Unknown. Since plotting of all those groups would result in a scatterplot that was overcrowded and confusing to interpret, we narrowed down the dataset to only look at 4 different racial groups: White, Black, Asian, and LantinX.  
+
+### R {.tabset .tabset-pills}
+
+```{r, eval = FALSE}
+# setup
+library(tidyverse)
+```
+
+
+##### Reading in and pre-processing the data
+
+```{r plot1_data_prep, class.source = "fold-hide"}
+filename_racial = "./data/Race Data Entry - CRDT.csv"
+racial_data = read_delim(
+  filename_racial, delim = ",",
+  col_types = cols(
+   .default = col_integer(), 
+   Date = col_character(),
+   State = col_character()
+  )
+) %>% 
+  pivot_longer(
+    cols = starts_with(c("Cases", "Deaths")), 
+    names_pattern = "(Cases|Deaths)_(.*)",
+    names_to = c(".value", "Race")
+  ) %>%
+  filter(!str_detect(Race, "Total|Ethnicity"))
+
+date_picked = "20201101"
+race_picked = c("White", "Black", "LatinX", "Asian")
+plot1_data = racial_data %>%
+  filter(
+    Date == date_picked, 
+    str_detect(Race, paste0(race_picked, collapse = "|"))
+  ) %>%
+  mutate(
+    Race = factor(Race, levels = race_picked, ordered = TRUE)
+  )
+```
+
+*  Format of `plot1_data`: 
+```{r plot1_data_head, echo = FALSE}
+plot1_data %>% head(5) %>%
+  format_table(align = "cccrr", caption = "plot1_data %>% head(5)")
+```
+
+*  Number of NA values: 
+```{r plot1_na_values, echo = FALSE}
+plot1_data %>% 
+  summarise(across(.fns = ~sum(is.na(.x)))) %>%
+  mutate(across(.fns = ~sprintf("%i/%i", .x, nrow(plot1_data)))) %>%
+  format_table(align = "c")
+```
+
+
+##### Generating the main plot
+
+```{r plot1_main, fig.height = 3.5, fig.width = 6.5}
+plot1_title = sprintf("%s (%s)",
+  "Total confirmed COVID-19 deaths vs. cases, U.S. States",
+  format(as.Date(date_picked, "%Y%m%d"), "%m/%d/%y")
+)
+
+palette_picked = "Set1"
+
+pic1_main = plot1_data %>%
+  ggplot(aes(x = Cases, y = Deaths, color = Race)) +
+  theme_bw() +
+  geom_point(size = 2, alpha = .7) +
+  scale_color_brewer(palette = palette_picked) +
+  ggtitle(plot1_title) +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 12),
+    axis.title = element_text(size = 9)
+  )
+
+pic1_main
+```
+
+##### Creating marginal plots
+
+#### ggExtra::ggMarginal()
+```{r plot1_a, fig.height = 4.5, fig.width = 8}
+pic1 = pic1_main + 
+  theme(legend.position = "left")
+
+ggExtra::ggMarginal(
+  pic1, type="histogram", 
+  groupColour = TRUE, groupFill = TRUE
+)
+```
+
+We can create marginal boxplots by setting `type = "boxplot"`: 
+```{r plot1_a2, fig.height = 5.5, fig.width = 8}
+ggExtra::ggMarginal(
+  pic1, type="boxplot", 
+  groupColour = TRUE, groupFill = TRUE
+)
+```
+
+We can also specify the relative size of the main plot to the marginal 
+ones using parameter `size`: 
+
+```{r plot1_a3, fig.height = 5.5, fig.width = 8}
+ggExtra::ggMarginal(
+  pic1, type="boxplot", size = 7,
+  groupColour = TRUE, groupFill = TRUE
+)
+```
+
+A size of 5 means that the main plot is 5x wider and 5x taller than the marginal plots.  
+Although `ggMarginal()` provides a easy solution to marginal plots, 
+it is not friendly to customization. For example, we cannot set the 
+two marginal plots to be of different types or of different sizes. 
+Neither can we specify the exact size for marginal plots in 
+units such as inch.  
+Check out the `Cowplot` section for a more flexible solution to 
+creating marginal plots in R. 
+
+#### Cowplot
+Using package `Cowplot` to create marginal plots is less succinct, 
+but more flexible. Unlike `ggExtra::ggMarginal`, `Cowplot` allows:
+*  putting the marginal plots on the left/bottom side of the main image;
+*  creating a marginal histogram for one axis, and a box plot/density plot for 
+another. 
+
+
+```{r plot1_b1, fig.align = "default", fig.show = "hold", fig.height = 3, out.width = "50%"}
+pic1_xhist = cowplot::axis_canvas(pic1_main, axis = "x") +
+  geom_histogram(
+    data = plot1_data %>% filter(!is.na(Cases) & !is.na(Deaths)), 
+    aes(x = Cases, fill = Race, color = Race),
+    bins = 30, alpha = .6
+  ) +
+  scale_fill_brewer(palette = palette_picked) +
+  scale_color_brewer(palette = palette_picked)
+
+pic1_yhist = cowplot::axis_canvas(pic1_main, axis = "y", coord_flip = TRUE) +
+  geom_histogram(
+    data = plot1_data %>% filter(!is.na(Cases) & !is.na(Deaths)), 
+    aes(x = Deaths, fill = Race, color = Race),
+    bins = 30, alpha = .6
+  ) +
+  scale_fill_brewer(palette = palette_picked) +
+  scale_color_brewer(palette = palette_picked) +
+  coord_flip()
+
+pic1_xhist
+pic1_yhist
+```
+
+<br>
+
+```{r plot1_b3, fig.height = 4.5, fig.width = 8}
+{pic1_main + 
+  theme(legend.position = "left")
+} %>%
+  cowplot::insert_xaxis_grob(
+    pic1_xhist, 
+    height = grid::unit(.8, "in"), 
+    position = "top"
+  ) %>%
+  cowplot::insert_yaxis_grob(
+    pic1_yhist, 
+    width = grid::unit(.8, "in"), 
+    position = "right"
+  ) %>%
+  cowplot::ggdraw()
+```
+
+##### Marginal plots on the bottom/left side
+We can move the marginal plots from the top/right side of the 
+original figure to the bottom/left side.  
+To do that, we may want to flip the two previously created marginal 
+histograms using `scale_y_reverse()`: 
+
+```{r plot1_c1, fig.height = 1.5, fig.width = 3}
+pic1_xhist + scale_y_reverse()
+```
+
+To make room for the marginal plots, we can move the x-axis and y-axis to the 
+top/right side of the original figure by setting the `position` parameter 
+in `scale_*_continuous()`: 
+
+```{r plot1_c2, fig.height = 4.5, fig.width = 8}
+{pic1_main +
+  scale_x_continuous(position = "top") +
+  scale_y_continuous(position = "right")
+} %>%
+  cowplot::insert_xaxis_grob(
+    pic1_xhist + scale_y_reverse(), 
+    height = grid::unit(.8, "in"), 
+    position = "bottom"
+  ) %>%
+  cowplot::insert_yaxis_grob(
+    pic1_yhist + scale_y_reverse(), 
+    width = grid::unit(.8, "in"), 
+    position = "left"
+  ) %>%
+  cowplot::ggdraw()
+```
+
+##### Marginal plots of different types
+
+```{r plot1_d, fig.height = 4.5, fig.width = 8}
+pic1_ybox = cowplot::axis_canvas(pic1_main, axis = "y") +
+  geom_boxplot(
+    data = plot1_data %>% filter(!is.na(Cases) & !is.na(Deaths)),
+    aes(x = 0, y = Deaths, fill = Race, color = Race), 
+    alpha = .6
+  ) +
+  scale_fill_brewer(palette = palette_picked) +
+  scale_color_brewer(palette = palette_picked)
+
+{pic1_main + 
+  theme(legend.position = "left")
+} %>%
+  cowplot::insert_xaxis_grob(
+    pic1_xhist, 
+    height = grid::unit(.8, "in"), 
+    position = "top"
+  ) %>%
+  cowplot::insert_yaxis_grob(
+    pic1_ybox, 
+    width = grid::unit(.8, "in"), 
+    position = "right"
+  ) %>%
+  cowplot::ggdraw()
+```
+
+We can even call `cowplot::insert_yaxis_grob()` twice to add multiple 
+margin plots for the y axis (although probably unnecessary).
+
+
+
+### STATA
+
+##### Reading in and pre-processing the data
+
+```{stata, eval = FALSE}
+cd "E:\git\Stats506_midterm_project\STATA\"
+import delimited "data\Race Data Entry - CRDT.csv", ///
+  stringcols(1) numericcols(3/28) clear
+
+keep if date == "20201101"
+keep state *white *black *latinx *asian
+
+reshape long cases_ deaths_, i(state) j(race) string
+rename cases_ cases
+rename deaths_ deaths
+
+// turn race into a ordered factor
+gen race_int = 1
+replace race_int = 2 if race == "black"
+replace race_int = 3 if race == "latinx"
+replace race_int = 4 if race == "asian"
+
+label define race_label 1 "White" 2 "Black" 3 "LatinX" 4 "Asian"
+label values race_int race_label 
+drop race
+rename race_int race
+
+drop if cases == . | deaths == .
+separate deaths, by(race) veryshortlabel
+```
+
+##### Creating marginal plots
+We will be Using the user written command `grc1leg` by Vince Wiggins to 
+create the marginal plots.  
+
+>grc1leg.  Combine graphs into one graph with a common legend. / Program by
+Vince Wiggins, StataCorp <vwiggins@stata.com>. / Statalist distribution,
+16 June 2003. / Distribution-Date: 02jun2010
+
+Use the following line to install `grc1leg`:
+```{stata, eval = FALSE}
+net install grc1leg, from(http://www.stata.com/users/vwiggins/)
+```
+
+
+> **Note: **  
+> 
+> 1.  Run the code chunk from 'local alpha' to 'twoway histogram cases'
+at once to make sure the local variables can be used by all three subplots.
+1.  The optacity settings (e.g. `mcolor(red%30)`) are only available in 
+STATA15 or above. For STATA14 or below, try using hollow circles instead 
+of solid ones by adding the option `msymbol(Oh)`.
+
+
+*  Creating top/right margin plots
+
+```{stata, eval = FALSE}
+// create the main plot
+local alpha %30
+local xscale_opt xscale(range(0 415000)) 
+local yscale_opt yscale(range(0 10500))
+
+local scatter_opt mcolor(red`alpha' blue`alpha' green`alpha' purple`alpha')
+scatter deaths? cases, `scatter_opt' ///
+  `xscale_opt' `yscale_opt' ///
+  legend(subtitle("Race") position(9) cols(1) region(style(none))) ///
+  ytitle("Deaths") xtitle("Cases") xlabel(, grid) ///
+  saving(yx_tr, replace)
+
+// create the two marginal histograms
+local hist_opt color(navy%30) bin(30)
+twoway histogram deaths, `hist_opt' fraction ///
+  `yscale_opt' ysca(alt) horiz fxsize(25) ///
+  ytitle("") xlabel(, nogrid) ///
+  saving(hy_tr, replace)
+twoway histogram cases, `hist_opt' fraction ///
+  `xscale_opt' xsca(alt) fysize(25) ///
+  xtitle("") xlabel(, grid) ylabel(, nogrid) ///
+  saving(hx_tr, replace)
+
+// group the three plots together
+local graph_title = "Total confirmed COVID-19 deaths vs. cases, " + ///
+                    "U.S. States (11/01/20)"
+grc1leg hx_tr.gph yx_tr.gph hy_tr.gph, ///
+  colfirst hole(3) imargin(0 0 0 0) ///
+  title("`graph_title'", size(medium)) ///
+  legendfrom(yx_tr.gph) position(9)
+  
+// save the final output
+graph export stata-marginplot-tr.png, replace
+
+// remove the intermediate files from disk
+erase hx_tr.gph
+erase yx_tr.gph
+erase hy_tr.gph
+```
+
+```{r stata_marginal1, echo = FALSE, out.width = '60%'}
+pic_name = "./STATA/stata-marginplot-tr.png"
+if (file.exists(pic_name)){
+  knitr::include_graphics(pic_name)
+}
+```
+
+*  Creating bottom/left margin plots
+```{stata, eval = FALSE}
+// create the main plot
+local alpha %30
+local xscale_opt xscale(range(0 415000)) 
+local yscale_opt yscale(range(0 10500))
+
+local scatter_opt mcolor(red`alpha' blue`alpha' green`alpha' purple`alpha')
+scatter deaths? cases, `scatter_opt' ///
+  `xscale_opt' `yscale_opt' ///
+  legend(subtitle("Race") position(3) cols(1) region(style(none))) ///
+  ytitle("Deaths") xtitle("Cases") ///
+  xlabel(, grid) ysca(alt) xsca(alt) /// 
+  saving(yx_bl, replace)
+
+// create the two marginal histograms
+local hist_opt color(navy%30) bin(30)
+twoway histogram deaths, `hist_opt' fraction ///
+  `yscale_opt' xsca(alt reverse) horiz fxsize(25) ///
+  ytitle("") xlabel(, nogrid) ///
+  saving(hy_bl, replace)
+twoway histogram cases, `hist_opt' fraction ///
+  `xscale_opt' ysca(alt reverse) fysize(25) ///
+  xtitle("") xlabel(, grid) ylabel(, nogrid) ///
+  saving(hx_bl, replace)
+
+// group the three plots together
+local graph_title = "Total confirmed COVID-19 deaths vs. cases, " + ///
+                    "U.S. States (11/01/20)"
+grc1leg hy_bl.gph yx_bl.gph hx_bl.gph, ///
+  hole(3) imargin(0 0 0 0) ///
+  title("`graph_title'", size(medium)) ///
+  legendfrom(yx_bl.gph) position(3)
+
+// save the final output
+graph export stata-marginplot-bl.png, replace
+
+// remove the intermediate files from disk
+erase hy_bl.gph
+erase yx_bl.gph
+erase hx_bl.gph
+
+```
+
+```{r stata_marginal2, echo = FALSE, out.width = '60%'}
+pic_name = "./STATA/stata-marginplot-bl.png"
+if (file.exists(pic_name)){
+  knitr::include_graphics(pic_name)
+}
+```
+
+### MATLAB
+
+##### Reading in and pre-processing the data
+
+Prior to any plotting, we'll organize the csv file so it only 
+contains the relevant data necessary for plotting.
+```{matlab, eval = FALSE}
+%% Date Prep 
+% Read in data
+fileName = 'Race Data Entry - CRDT.csv';
+raceData = readtable(fileName);
+%Select only 11/01/20 data
+newestDate = 20201101;
+raceData = raceData(raceData.Date == newestDate,:);
+% Convert all case/death # to double
+colnames = raceData.Properties.VariableNames;
+for i = 3:length(colnames)
+    if iscell(raceData.(genvarname(colnames{i})))
+        raceData.(genvarname(colnames{i})) = ...
+        str2double(raceData.(genvarname(colnames{i})));
+    end
+end
+```
+
+
+Narrowed down the dataset to only look at 4 different racial groups: White, Black, Asian, Lantinx.
+
+```{matlab, eval = FALSE}
+% Grabbing the different races identified in dataset
+race_idx = find(contains(colnames,'Deaths'));
+race_idx = race_idx(2:10); % remove total and ethnicity info
+races = raceData(end, race_idx);
+raceID =  strrep(races.Properties.VariableNames,'Deaths_','');
+% Grab cases and deaths for each race, convert to column vector
+cases = [];
+%cases = table2array(raceData(1:end, 4:12)); % for all races
+cases = table2array(raceData(1:end, 4:7));
+cases = reshape(cases,[],1);
+deaths = [];
+%deaths = table2array(raceData(1:end, 17:25)); % for all races
+deaths = table2array(raceData(1:end, 17:20)); 
+deaths = reshape(deaths,[],1);
+```
+
+MATLAB's scatterhist plot requires that we pass in group label that is the same dimensions as the x and y datapoints being plotted, so we create a new array containing labels match.
+
+```{matlab, eval = FALSE}
+% Generate race labels matching the column vector for cases/deaths
+race_label = [];
+for i = 1:4
+    race_label = [race_label; repmat(raceID(i),size(raceData,1),1)];
+end
+```
+
+##### Creating the marginal plots
+
+Now that all the variables are ready, we use the scatterhist function to create a scatter plot with histogram plotted along its margins.
+
+```{matlab, eval = FALSE}
+x = cases;
+y = deaths;
+figure
+% Alternatiely, we could be using scatterhistogram function but this
+% requires MATLAB version R2018b minimum. This would allow us to adjust transparency
+% of the plotted points.
+h = scatterhist(x,y,'Group',race_label, 'Style','bar', 'marker','o');
+xlabel('Cases')
+ylabel('Deaths')
+title('Total confirmed COVID-19 deaths vs. cases, U.S. States (11/01/20)')
+```
+
+```{r matlab_marginal1, echo = FALSE, out.width = '60%'}
+pic_name = "./Marginal1.png"
+if (file.exists(pic_name)){
+  knitr::include_graphics(pic_name)
+}
+```
+
+<span style="color:red">***[To be added in the final report]***:</span> 
+Newer versions of MATLAB (starting with version R2018b), a new function `scatterhistogram` (in comparison to the above `scatterhist`) has been implemented which allows the user to be able to adjust the transparency of the scatter plot points. The implementation of this similar function will also be demonstrated in the final report.
+
+The following code shows how we may swap out the histogram for a boxplot. 
+In MATLAB, in order to plot onto the same figure rather than onto a new figure, we use the command:
+```{matlab, eval = FALSE}
+% If wanting to put box plots instead
+hold on;
+```
+Note that h(1) is the figure handle to the scatterplot, h(2) to bottom histogram, and h(3) to left histogram. After getting the color labels from the scatterplot, we can convert the histogram to boxplot using following code:
+```{matlab, eval = FALSE}
+clr = get(h(1),'colororder');
+
+boxplot(h(2),x,race_label,'orientation','horizontal',...
+     'label',{'','','',''},'color',clr);
+boxplot(h(3),y,race_label,'orientation','horizontal',...
+     'label', {'','','',''},'color',clr);
+
+set(h(2:3),'XTickLabel','');
+view(h(3),[270,90]);  % Rotate the Y plot
+axis(h(1),'auto');  % Sync axes
+hold off;
+```
+
+```{r matlab_marginal2, echo = FALSE, out.width = '60%'}
+pic_name = "./Marginal2.png"
+if (file.exists(pic_name)){
+  knitr::include_graphics(pic_name)
+}
+```
+
+### Python
+
+```{python plot1_setup, eval = FALSE}
+# setup
+import numpy as np
+import pandas as pd
+import matplotlib.patches as mpatches
+import matplotlib.pyplot as plt
+```
+
+
+##### Reading in and pre-processing the data
+
+```{python plot1_data, eval = TRUE}
+df = pd.read_csv('./Data/Race Data Entry - CRDT.csv')
+new = df[df['Date'] == 20201101]
+new = new[['Cases_Asian', 'Cases_Black', 'Cases_LatinX','Cases_White',
+           'Deaths_Asian', 'Deaths_Black', 'Deaths_LatinX', 'Deaths_White']]
+new = new.dropna(axis=0, how='any') # drop all rows that have any NaN values
+new.head()
+```
+
+##### Creating the marginal plots
+
+*  Plot settings
+
+```{python plot1_plot_setting, eval = FALSE}
+left, width = 0.1, 0.65
+bottom, height = 0.1, 0.65
+spacing = 0.005
+
+x1 = new['Cases_Asian']
+y1 = new['Deaths_Asian']
+x2 = new['Cases_Black']
+y2 = new['Deaths_Black']
+x3 = new['Cases_LatinX']
+y3 = new['Deaths_LatinX']
+x4 = [float(x) for x in new['Cases_White']]
+y4 = new['Deaths_White']
+
+rect_scatter = [left, bottom, width, height]
+rect_histx = [left, bottom + height + spacing, width, 0.2]
+rect_histy = [left + width + spacing, bottom, 0.2, height]
+
+xmax = max(np.max(x1), np.max(x2), np.max(x3))
+ymax = max(np.max(y1), np.max(y2), np.max(y3))
+binsx = np.arange(0, xmax + 1000, 9000)
+binsy = np.arange(0, ymax + 200, 200)
+```
+
+*  Creating the marginal plot using `matplotlib`
+
+```{python plot1_script, eval = FALSE}
+fig = plt.figure(figsize=(10, 8))
+ax = fig.add_axes(rect_scatter)
+plt.xlabel('Infectious Number')
+plt.ylabel('Death Number')
+plt.grid(color='LightGrey')
+blue_patch = mpatches.Patch(color='blue', label='Asian')
+purple_patch = mpatches.Patch(color='purple', label='Black')
+red_patch = mpatches.Patch(color='red', label='LatinX')
+green_patch = mpatches.Patch(color='green', label='White')
+ax_histx = fig.add_axes(rect_histx, sharex=ax)
+ax_histy = fig.add_axes(rect_histy, sharey=ax)
+plt.legend(handles=[blue_patch, purple_patch, red_patch, green_patch], loc = 'best')
+
+ax.scatter(x1, y1, color = 'blue', alpha = 0.5)
+ax_histx.hist(x1, bins=binsx, color = 'blue', alpha = 0.5)
+ax_histy.hist(y1, bins=binsy, orientation='horizontal', color = 'blue', alpha = 0.5)
+ax.scatter(x2, y2, color = 'purple', alpha = 0.5)
+ax_histx.hist(x2, bins=binsx, color = 'purple', alpha = 0.5)
+ax_histy.hist(y2, bins=binsy, orientation='horizontal', color = 'purple', alpha = 0.5)
+ax.scatter(x3, y3, color = 'red', alpha = 0.5)
+ax_histx.hist(x3, bins=binsx, color = 'red', alpha = 0.5)
+ax_histy.hist(y3, bins=binsy, orientation='horizontal', color = 'red', alpha = 0.5)
+ax.scatter(x4, y4, color = 'green', alpha = 0.5)
+ax_histx.hist(x4, bins=binsx, color = 'green', alpha = 0.5)
+ax_histy.hist(y4, bins=binsy, orientation='horizontal', color = 'green', alpha = 0.5)
+
+plt.show()
+```
+
+
+```{r python_marginal, echo = FALSE, out.width = '60%'}
+pic_name = "./python_marginal.png"
+if (file.exists(pic_name)){
+  knitr::include_graphics(pic_name)
+}
+```
+
+
+
+## Bubble plot {.tabset .tabset-pills}
+
+In our project, we use bubble plot to see the relationship between stringency index, human development index, and total # of deaths in each country. Each bubble represents a single country with x-axis measuring the stringency index, y-axis measuring the human development index, and the size of the bubble measuring the total number of deaths in the country at the time of 10/20/20. Bubble plot is useful because it allows us to easily visualize 3 dimensions of the data rather than the conventional 2.  
+
+*  Variables
+    *  *ID: location(iso_code) & date*
+    *  continent
+    *  total_deaths_per_million
+    *  stringency_index
+    *  human_development_index
+*  This figure presents only the **Oct 20, 2020** data.
+
+
+### R
+
+```{r, eval = FALSE}
+# setup
+library(tidyverse)
+```
+
+
+##### Reading in and pre-processing the data
+
+```{r plot2_data_prep, class.source = "fold-hide"}
+filename_covid = "./data/owid-covid-data.csv"
+plot2_data = read_delim(filename_covid, delim = ",") %>%
+  select(date, iso_code, continent, total_deaths_per_million,
+         stringency_index, human_development_index) %>%
+  filter(date == "2020-10-20")
+```
+
+*  Format of `plot2_data`: 
+```{r plot2_data_head, echo = FALSE}
+plot2_data %>% head(5) %>% 
+  format_table(caption = "plot2_data %>% head(5)")
+```
+
+*  Number of NA values: 
+```{r plot2_na_values, echo = FALSE}
+plot2_data %>% 
+  summarise(across(.fns = ~sum(is.na(.x)))) %>%
+  mutate(across(.fns = ~sprintf("%i/%i", .x, nrow(plot2_data)))) %>%
+  format_table(align = "c")
+```
+
+##### Creating the bubble plot
+```{r plot2_1, fig.height = 5, fig.width = 8}
+plot2_title = paste0(
+  "Total #of Deaths Across Gov. Stringency Index", 
+  " and Human Development Index"
+)
+
+plot2_data %>%
+  filter(!is.na(continent)) %>% # remove 'NA' from the plot's legend
+  ggplot(aes(x = stringency_index, y = human_development_index,
+             size = total_deaths_per_million, color = continent)) +
+  theme_bw() +
+  geom_point(alpha = .5) +
+  scale_size_continuous(
+    name = "Total Death (Per Mil.)",
+    breaks = seq(100, 1300, 300),
+    range = c(2, 14)
+  ) +
+  scale_color_brewer(
+    name = "Continent", 
+    palette = "Set1"
+  ) +
+  scale_x_continuous(
+    name = "Stringency Index", 
+    breaks = seq(0, 100, 10)
+  ) +
+  scale_y_continuous(
+    name = "Human Development Index",
+    breaks = seq(0, 1, 0.1)
+  ) +
+  ggtitle(plot2_title) +
+  theme(
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5, size = 12),
+    axis.title = element_text(size = 10)
+  ) +
+  guides(color = guide_legend(override.aes = list(size = 3))) # enlarge the symbol size in the color legend
+```
+
+### STATA
+
+##### Reading in and pre-processing the data
+```{stata, eval = FALSE}
+import delimited "data\owid-covid-data.csv", clear
+
+// keep only relevant variables & data points
+keep if date == "2020-10-20"
+keep iso_code continent total_deaths_per_million ///
+     stringency_index human_development_index
+drop if continent == "" //drop international world data points
+
+// Drop data pt. if either of the index measures are missing
+drop if stringency_index ==. | ///
+        human_development_index==. | ///
+		    total_deaths_per_million ==.
+
+save covid_plot_data, replace
+```
+
+
+##### Creating the bubble plot
+
+> **Note: **
+The optacity settings (e.g. `mcolor(red%30)`) are only available in 
+STATA15 or above. For STATA14 or below, try using hollow circles instead 
+of solid ones by adding the option `msymbol(Oh)`.
+
+
+```{stata, eval = FALSE}
+use covid_plot_data, clear
+separate human_development_index, by(continent) veryshortlabel
+
+local vars human_development_index? stringency_index ///
+      [aw = total_deaths_per_million]
+local symbol O
+local size .75
+local alpha %30
+local options xscale(range(0 80)) yscale(range(0.32 1)) ///
+			mcolor(red`alpha' blue`alpha' green`alpha' ///
+			       purple`alpha' orange`alpha' yellow`alpha') ///
+			msymbol(`symbol' `symbol' `symbol' `symbol' `symbol' `symbol') ///
+			msize(`size' `size' `size' `size' `size' `size')
+local graph_title = ("Total # of Deaths Across Gov. Stringency Index " + ///
+                     "and Human Development Index")
+scatter `vars', `options' ///
+  legend(label(4 "N. America") label(6 "S. America") ///
+	     subtitle("Continent") position(3) cols(1) ///
+	     region(style(none)) ///
+		) ///
+  title("`graph_title'", size(small)) ///
+  ytitle("Human Development Index") xtitle("Government Stringency Index")
+
+// save the plot
+graph export stata-bubbleplot.png, replace
+```
+
+```{r stata_bubble, echo = FALSE, out.width = '60%'}
+pic_name = "./STATA/stata-bubbleplot.png"
+if (file.exists(pic_name)){
+  knitr::include_graphics(pic_name)
+}
+```
+
+### MATLAB
+Bubble plot is a relatively new function ([bubblechart](https://www.mathworks.com/help/matlab/ref/bubblechart.html)) introduced to MATLAB in R2020b.  
+
+```{matlab matlab_plot2_data, eval = FALSE}
+%% BubblePlots
+% For ref see: https://www.mathworks.com/help/matlab/ref/bubblechart.html
+%% Data Prep
+fileName = 'owid-covid-data.csv';
+covid_orig = readtable(fileName);
+% Select 2020-10-20 Data
+newestDate = datetime([2020  10  20]);
+covid = covid_orig(covid_orig.date == newestDate,:);
+```
+
+Checking the # of NaN values for the stringency index:  
+
+```{matlab m_plot2_na_stringency, eval = FALSE}
+sum(isnan(covid.stringency_index))
+```
+
+```{r matlab_plot2_na_stringency, echo = FALSE}
+cat("ans = 40")
+```
+
+Checking the # of NaN values for the human development index: 
+
+```{matlab matlab_plot2_na_human, eval = FALSE}
+sum(isnan(covid.human_development_index))
+```
+
+```{r m_plot2_na_human, echo = FALSE}
+cat("ans = 33")
+```
+
+```{matlab matlab_plot2_variable, eval = FALSE}
+% Variables of interest (VOI)
+voi = {'location', 'continent', 'total_cases_per_million', ...
+       'total_deaths_per_million','stringency_index',...
+       'human_development_index'};
+% Remove international and world info and keep only variables of interest
+covid = covid(1:end-2, voi);
+```
+
+We want to group the countries by its continent membership to see if there're any patterns to certain continents being more stringent in COVID-19 restrictions or if certain continents are being impacted more heavily with COVID-19 deaths.  
+
+```{matlab matlab_plot2_label, eval = FALSE}
+% Convert continent label to color label to be used in bubble plot
+for k = 1 : size(covid, 1)
+    if strcmp(covid.continent(k), 'Africa')
+       covid.continent{k} = 1;
+    elseif strcmp(covid.continent(k), 'Asia')
+       covid.continent{k} = 2;
+    elseif strcmp(covid.continent(k), 'Europe')
+        covid.continent{k} = 3;
+    elseif strcmp(covid.continent(k), 'North America')
+        covid.continent{k} = 4;
+    elseif strcmp(covid.continent(k), 'Oceania')
+        covid.continent{k} = 5;
+    elseif strcmp(covid.continent(k), 'South America')
+        covid.continent{k} = 6;
+    end
+end
+covid = sortrows(covid, 2);
+x = table2array(covid(:,5)); % x-axis: Stringency index
+y = table2array(covid(:,6)); % y-axis: Human development index
+sz = table2array(covid(:,4)); % size: Total deaths per million
+c = cell2mat(table2array(covid(:,2))); % color: continent
+```
+
+
+In MATLAB, to create a bubble chart with different grouping colors, different groups have to be plotted separately and overlaid on top of one another.   
+
+```{matlab matlab_plot2_plot, eval = FALSE}
+% To achieve different colors for each continent, we have to overlay
+% multiple bubble charts on top of one another. We need separated arrays
+% to do this.
+% Stringency index of countries grouped by continent
+x1 = x(c==1); x2 = x(c==2); x3 = x(c==3);
+x4 = x(c==4); x5 = x(c==5); x6 = x(c==6);
+% Human development index of countries grouped by continent
+y1 = y(c==1); y2 = y(c==2); y3 = y(c==3); 
+y4 = y(c==4); y5 = y(c==5); y6 = y(c==6);
+% Total Deaths per mil. of countries grouped by continent
+sz1 = sz(c==1); sz2 = sz(c==2); sz3 = sz(c==3);
+sz4 = sz(c==4); sz5 = sz(c==5); sz6 = sz(c==6);
+%% Plot data in a tiled chart layout
+figure
+t = tiledlayout(1,1);
+nexttile
+b1 = bubblechart(x1,y1,sz1);
+hold on
+b2 = bubblechart(x2,y2,sz2);
+hold on
+b3 = bubblechart(x3,y3,sz3);
+hold on
+b4= bubblechart(x4,y4,sz4);
+hold on
+b5 = bubblechart(x5,y5,sz5);
+hold on
+b6= bubblechart(x6,y6,sz6);
+hold off
+title('Total # of Deaths Across Gov. Stringency Index and Human Development Index')
+xlabel('Stringency Index (100 - strictest)')
+ylabel('Human Development Index')
+```
+
+We want to include both legend for the continents and the legend for the size of the bubbles (bubblelegend). In order to include these 2 separate legends, we have to specify a layout of the tile.  
+
+```{matlab matlab_plot2_legend, eval = FALSE}
+blgd = bubblelegend('Total Death (Per Mil.)','Location','eastoutside');
+lgd = legend('Africa','Asia', 'Europe', 'N. America', 'Oceania', 'S. America');
+blgd.Layout.Tile = 'east';
+lgd.Layout.Tile = 'east';
+```
+
+While the default value of transparency of the bubbles is set at 60% opacity, since we have large # of data points, we'll bring it down to 40% so it's easier to see all the points.  
+
+```{matlab matlab_plot2_transparency, eval = FALSE}
+b1.MarkerFaceAlpha = 0.4; b2.MarkerFaceAlpha = 0.4;
+b3.MarkerFaceAlpha = 0.4; b4.MarkerFaceAlpha = 0.4;
+b5.MarkerFaceAlpha = 0.4; b6.MarkerFaceAlpha = 0.4;
+```
+
+
+```{r matlab_bubble1, echo = FALSE, out.width = '60%'}
+pic_name = "./bubble1.png"
+if (file.exists(pic_name)){
+  knitr::include_graphics(pic_name)
+}
+```
+
+We can further specify the color of the bubbles for each group with the pair option parameter 'bubble color' by inputting it into as an in put parameter in the bubblechart function call:  
+
+```{matlab matlab_plot2_color, eval = FALSE}
+ex1 = bubblechart(x1,y1,sz1, "red");
+```
+
+```{r matlab_bubble2, echo = FALSE, out.width = '60%'}
+pic_name = "./bubble2.png"
+if (file.exists(pic_name)){
+  knitr::include_graphics(pic_name)
+}
+```
+
+
+Or specify the color (in RGB value array) once the plot has been created by assigning its property 'CData':  
+
+```{matlab matlab_plot2_color_rgb, eval = FALSE}
+ex2 = bubblechart(x1,y1,sz1, "red");
+ex2.CData = [0 0 0];
+```
+
+
+```{r matlab_bubble3, echo = FALSE, out.width = '60%'}
+pic_name = "./bubble3.png"
+if (file.exists(pic_name)){
+  knitr::include_graphics(pic_name)
+}
+```
+
+### Python
+
+```{python plot2_setup, eval = FALSE}
+# setup
+import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+import seaborn as sns
+```
+
+
+##### Reading in and pre-processing the data
+
+```{python plot2_data, eval = TRUE}
+df2 = pd.read_csv("./Data/owid-covid-data.csv")
+new2 = df2[df2['date'] == '2020-10-20']
+new2 = new2[['continent', 'total_deaths_per_million', 
+             'stringency_index', 'human_development_index']]
+new2 = new2.dropna(axis=0, how='any')
+new2.head()
+```
+
+##### Creating the bubble plot {.tabset .tabset-pills}
+
+###### Seaborn
+
+```{python plot2_script_seaborn, eval = FALSE}
+plt.figure(figsize=(11, 7))
+sns.scatterplot(x='stringency_index',
+                y='human_development_index',
+                size=new2['total_deaths_per_million'],
+                sizes=(10,1300),
+                alpha=0.6,
+                hue=new2['continent'],
+                data=new2)
+
+# Put the legend out of the figure
+plt.legend(bbox_to_anchor=(1.03, 1),borderaxespad=0,
+           prop={'size':12}, handlelength=2,
+          frameon=False)
+plt.rcParams.update({'legend.labelspacing':1.85})
+plt.xlabel('Stringency Index')
+plt.ylabel('Human Development Index')
+plt.title('Total # of Death Across Stringency Index & Human Development Index')
+plt.grid(color='LightGrey')
+plt.tight_layout()
+plt.savefig("Bubble_plot_Seaborn_color_by_variable_Seaborn_scatterplot.png",
+            format='png',dpi=150)
+```
+
+
+```{r python_bubble_seaborn, echo = FALSE, out.width = '60%'}
+pic_name = "./python_bubble_seaborn.png"
+if (file.exists(pic_name)){
+  knitr::include_graphics(pic_name)
+}
+```
+
+###### Matplotlib
+
+```{python plot2_script_matplotlib, eval = FALSE}
+continent_list = ['Africa', 'Asia', 'Europe', 'North America', 'Oceania', 'South America']
+color_list = ['red', 'blue', 'green', 'purple', 'gold', 'pink']
+colors = {'Africa':'red', 'Asia':'blue', 'Europe':'green',
+          'North America':'purple', 'Oceania': 'gold',
+          'South America': 'pink'}
+l = []
+for i in range(6):
+    l.append(mpatches.Patch( color=color_list[i],
+                             alpha=0.7,
+                             label=continent_list[i]))
+    
+plt.figure(figsize = (9,8))
+plt.scatter('stringency_index',
+            'human_development_index',
+            s='total_deaths_per_million',
+            c=new2['continent'].apply(lambda x: colors[x]),
+            alpha=0.7,
+            data=new2)
+plt.grid(color='LightGrey')
+plt.xlabel('Stringency Index')
+plt.ylabel('Human Development Index')
+plt.title('Total # of Death Across Stringency Index & Human Development Index')
+legend1 = plt.legend(handles=l, loc = (1.02,0.78))
+plt.show()
+```
+
+
+```{r python_bubble_matplotlib, echo = FALSE, out.width = '60%'}
+pic_name = "./python_bubble_matplotlib.png"
+if (file.exists(pic_name)){
+  knitr::include_graphics(pic_name)
+}
+```
+
+##### {-}
+
+
+
+
+## Interactive plot {.tabset .tabset-pills}
+Interactive plots allow us to manipulate the viewing of the data points plotted and can be useful in focusing on specific aspect of the data. 
+In this example, we will plot an interactive histogram comparing the # of cases, deaths, tests performed, and hospitalized across a few different countries in Europe.  ([Dataset](https://ourworldindata.org/covid-hospitalizations)). 
+Clicking the legend in the plot will either hide or show the bar associated with the specific item in the legend.
+
+*  Variables
+    *  *ID: location(iso_code) & date*
+    *  total_cases_per_million
+    *  total_deaths_per_million
+    *  hosp_patients_per_million
+    *  total_tests_per_thousand
+*  This figure presents only the **Oct 20, 2020** data.  
+
+### R
+
+```{r, eval = FALSE}
+# setup
+library(tidyverse)
+```
+
+##### Reading in and pre-processing the data
+
+```{r plot3_data_prep, class.source = "fold-hide"}
+filename_covid = "./data/owid-covid-data.csv"
+
+variable_list = c(
+  "total_cases", "total_deaths", 
+  "hosp_patients", "total_tests"
+) # this is used to create ordered factor, which will then affect
+# the order of variables displayed in the bar plot
+
+plot3_data = read_delim(
+  filename_covid, delim = ",",
+  col_types = cols(
+   date = col_character(),
+   iso_code = col_character(),
+   location = col_character(),
+   total_cases_per_million = col_double(),
+   total_deaths_per_million = col_double(),
+   hosp_patients_per_million = col_double(),
+   total_tests_per_thousand = col_double()
+  )
+) %>%
+  select(date, iso_code, location, 
+         total_cases_per_million, 
+         total_deaths_per_million,  
+         hosp_patients_per_million, 
+         total_tests_per_thousand) %>%
+  filter(
+    iso_code %in% c("AUT", "BEL", "BGR", "CZE", "DNK"),
+    date == "2020-10-20"
+  ) %>%
+  mutate(
+    total_tests_per_thousand = total_tests_per_thousand * 1e03
+    # turn 'per thousand' to 'per million'
+  ) %>%
+  pivot_longer(
+    cols = total_cases_per_million:total_tests_per_thousand,
+    names_pattern = "(.*)_per", 
+    names_to = "variable"
+  ) %>%
+  mutate(
+    variable = factor(variable, levels = variable_list, ordered = TRUE)
+  )
+
+```
+
+*  Format of `plot3_data`: 
+```{r plot3_data_head, echo = FALSE}
+plot3_data %>% head(5) %>% 
+  format_table(caption = "plot3_data %>% head(5)")
+```
+
+*  Number of NA values: 
+```{r plot3_na_values, echo = FALSE}
+plot3_data %>% 
+  summarise(across(.fns = ~sum(is.na(.x)))) %>%
+  mutate(across(.fns = ~sprintf("%i/%i", .x, nrow(plot3_data)))) %>%
+  format_table(align = "c")
+```
+
+##### Creating the interactive plot
+Using library `ggplotly`, we can easily add interactivity to a ggplot 
+object, and the interactivity will be retained in an HTML output of 
+Rmarkdown.  
+
+Try the following: 
+
+*  Double click an item on the legend to single out that character, 
+and double click again to show all characters.
+*  Single click an item to hide / re-display that character. 
+
+```{r plot3_1, fig.height = 4, fig.width = 7}
+plot3_title = paste0(
+  "Comparison of Cases, Deaths, Hospitalizations, and Testing"
+)
+
+plot3_base = plot3_data %>%
+  ggplot(aes(x = location, y = value,
+             fill = variable)) +
+  theme_bw() +
+  geom_col(position = "dodge", width = .7) +
+  scale_fill_brewer(
+    name = "Variable", 
+    palette = "Paired"
+  ) +
+  scale_x_discrete(name = "Countries") +
+  ggtitle(plot3_title) +
+  theme(
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5, size = 12),
+    axis.title = element_text(size = 10)
+  )
+
+{plot3_base + 
+  scale_y_continuous(name = "# per million")} %>%
+  plotly::ggplotly()
+```
+
+Due to the large data range, we use a log10 scale to transform the y-axis value to ensure all variables of interest are visible.  
+Note that when the mouse hovers over a bar, the value presented will still be the original value before scaling. That way we can know the exact value without referencing y-axis labels. 
+
+```{r plot3_2, fig.height = 4, fig.width = 7}
+{plot3_base +
+  scale_y_continuous(name = "log10(# per million)", trans = "log10") + 
+  theme(
+    axis.text.y = element_blank() # remove the y-axis label
+    # because they are not helpful due to the large data range
+  )
+} %>%
+  plotly::ggplotly()
+```
+
+Note that the legend position is higher than static plots. We can 
+move the legend items downwards using `plotly::layout()`, and 
+move the legend title downwards by (i) hiding the original legend 
+title, and (ii) add a new legend title using `plotly::add_annotations`.
+
+```{r plot3_3, fig.height = 4, fig.width = 7}
+{plot3_base + 
+  scale_y_continuous(name = "log10(# per million)", trans = "log10") +
+  theme(
+    axis.text.y = element_blank(),
+    legend.title = element_blank() # hide the legend title
+  )
+} %>%
+  plotly::ggplotly() %>%
+  # move legend downwards
+  plotly::layout(legend=list(y=0.8, yanchor="top")) %>% 
+  # add the legend title back but to a lower position
+  plotly::add_annotations(
+    text="Variable",
+    xref="paper", x=1.02, xanchor="left",
+    yref="paper", y=0.8, yanchor="bottom",
+    legendtitle=TRUE,
+    showarrow=FALSE
+  )
+```
+
+### MATLAB
+
+[Clickable Legend Toolbox](https://www.mathworks.com/matlabcentral/fileexchange/21799-clickablelegend-interactive-highlighting-of-data-in-figures) was downloaded from MATLAB FileExchange in order to make the legend interactive. 
+However, it should be noted that the original toolbox had a small bug associated with a coloring issue in the function (togglevisibility) that had to be corrected. 
+The updated version of the toolbox is available in the [project repository](https://github.com/SkyWang0919/STATS-506-Midterm-Project-02/tree/main/MATLAB/clickable_legend) on github. 
+
+##### Reading in and pre-processing the data
+
+```{matlab, eval = FALSE}
+%% Data Prep
+addpath('clickable_legend')
+fileName = 'owid-covid-data.csv';
+covid_orig = readtable(fileName);
+
+% Select 2020-10-20 Data
+newestDate = covid_orig.date(217);
+covid_hosp = covid_orig(covid_orig.date == newestDate,:);
+% Keep only countries that have hospitalization data
+covid_hosp = covid_hosp(~isnan(covid_hosp.hosp_patients_per_million),:);
+
+% Plotting the following variables:
+%   # of deaths, # of cases, # of tests, # hospitalizations
+voi = {'location', 'total_cases_per_million', ...
+    'total_deaths_per_million','hosp_patients_per_million',...
+    'total_tests_per_thousand'};
+
+% Update dataset to only include variables of interest
+covid_hosp = covid_hosp(:, voi);
+% Convert total_tests_per_thousand to total_tests_per_million
+covid_hosp(:,'total_tests_per_thousand') = ...
+table(1000*covid_hosp.total_tests_per_thousand);
+covid_hosp.Properties.VariableNames{5} = 'total_tests_per_million';
+```
+
+Clickable Legend functionality can be added to any plots that has a unique legend entry. 
+In our case, we use bar graphs to compare the number of cases, deaths, hospitalization, and testing across the 5 different European countries.
+However, it can be added to line plots and scatter plots (by getting rid of the line and specifying marker shape and size).
+
+```{matlab, eval = FALSE}
+%% Plotting 
+nCountries = 5;
+X = categorical(covid_hosp.location(1:nCountries));
+Y = [covid_hosp{1:nCountries,2}, covid_hosp{1:nCountries,3},...
+    covid_hosp{1:nCountries,4}, covid_hosp{1:nCountries,5}];
+figure
+bar(X,Y)
+```
+
+Once the base plot has been plotted, we add the interactive functionality by calling function 'clickableLegend' and enable the toggling of the visibility of the bars by clicking on the text shown in the legend. In calling the function, we specify the name of each legend entry and we can specify the optional location of the legend, through passing of 'Location' argument pair (in this case 'Location', 'eastoutside'). 
+
+**Note: **The y-axis was log scaled for better comparison of values across different statistics.
+
+```{matlab, eval = FALSE}
+clickableLegend({'Case','Death','Hosp','Test'}, 'Location', 'eastoutside');
+title('Comparison of Cases, Deaths, Hospitaliations, and Testing')
+xlabel('Countries')
+ylabel('log10(# per million)')
+set(gca, 'YScale', 'log')
+```
+
+```{r matlab_interactive, echo = FALSE, out.width = '60%'}
+pic_name = "./interactive.png"
+if (file.exists(pic_name)){
+  knitr::include_graphics(pic_name)
+}
+```
+
+Unfortunately, MATLAB figure does not retain its interactive functionality through an html export, the example code will have to be executed in MATLAB. The .m script of this code is available in [the project github repository](https://github.com/SkyWang0919/STATS-506-Midterm-Project-02/tree/main/MATLAB).   
+
+<span style="color:red">**[To be included in final report]:**</span> 
+
+*  Possibly adding a GIF of the interaction in MATLAB? 
+*  Going into the optional parameter settings for clickableLegend?
+
+### Python
+
+```{python plot3_setup, eval = FALSE}
+# setup
+import numpy as np
+import plotly.express as px
+import plotly.offline as offline
+import plotly.graph_objs as go
+```
+
+
+##### Reading in and pre-processing the data
+```{python eval = TRUE}
+# will be using the same dataset as in the bubble plot section
+new3 = df2[df2['date'] == '2020-10-20']
+new3 = new3[['location', 'total_cases_per_million', 'total_deaths_per_million',
+             'hosp_patients_per_million',  'total_tests_per_thousand']]
+new3 = new3.dropna(axis=0, how='any')[0:5]
+new3.head()
+```
+
+
+##### Creating the interactive plot
+
+```{python plot3_data, eval = FALSE}
+branches = new3['location']
+total_cases_per_million = np.log10(new3['total_cases_per_million'])
+total_deaths_per_million = np.log10(new3['total_deaths_per_million'])
+hosp_patients_per_million = np.log10(new3['hosp_patients_per_million'])
+total_tests_per_thousand = np.log10(new3['total_tests_per_thousand']*1000)
+
+trace1 = go.Bar(
+   x = branches,
+   y = total_cases_per_million,
+   name = 'total_cases_per_million'
+)
+trace2 = go.Bar(
+   x = branches,
+   y = total_deaths_per_million,
+   name = 'total_deaths_per_million'
+)
+trace3 = go.Bar(
+   x = branches,
+   y = hosp_patients_per_million,
+   name = 'hosp_patients_per_million'
+)
+trace4 = go.Bar(
+   x = branches,
+   y = total_tests_per_thousand,
+   name = 'total_tests_per_million'
+)
+data = [trace1, trace2, trace3, trace4]
+layout = go.Layout(title = 'Comparison of Cases, Deaths, Hospitalizations, and Testings', barmode = 'group')
+fig = go.Figure(data = data, layout = layout)
+fig.update_xaxes(title_text='Countries')
+fig.update_yaxes(title_text='Log10 (# per million)')
+fig.update_layout
+offline.plot(fig, filename='interactive.html')
+```
+
+```{r python_interactive, echo=FALSE}
+htmltools::includeHTML("./ref-PYTHON/interactive.html")
+```
+
+
+
+## Discussion  
+
+Data visualization can prove to be an immensely useful tool when trying to understand and organize large amounts of data. 
+In this tutorial, we reviewed a few graphical concepts, marginal histogram, bubble plot, and interactive plots to demonstrate the functionality of these different graphical concepts and how they may facilitate a better grasp of the pattern captured in the data. 
+
+##### Comparison between different software/tools
+
+The tutorial is carried out in 4 different programming languages (R, STATA, Python, MATLAB). When it comes to data visualization, the two open-source software, <span style="color:SteelBlue">R and Python take the clear lead in flexibility and functionality over the two proprietary languages, STATA and MATLAB</span>. 
+The open-source nature of R and Python has allowed the development of a vast number of user written libraries capable of producing publication quality plots with large customizability of the plots.   
+
+However, at the cost of less customizability on part of the user, <span style="color:SteelBlue">plotting in MATLAB and STATA tends to be a little more succinct and straightforward</span>, with many default parameters in place that do not need to be specified. We also find that STATA's macros come in really handy when we want to unify settings across multiple figures without writing duplicated code.    
+
+However, we would note that <span style="color:SteelBlue">once we begin to try to implement the same level of specifications in the plots as these open-source software, MATLAB and STATA lose this advantage</span>. 
+For example, with R's ggplot2, we can easily change aesthetic options. 
+If we want to enlarge the symbol size in a color legend while keeping the symbols in the main plot untouched, simply using `guides(color = guide_legend(override.aes = list(size = 3)))` will do.
+The same task can take much more effort in STATA: we have to create another layer of scatterplot that does not have any valid data points (so the plotting area will be empty) but has larger symbol size (for the legend).  See the [code example](https://www.stata.com/statalist/archive/2009-02/msg01067.html) below:   
+
+```{stata, eval = FALSE}
+sysuse auto
+twoway /// the 3rd and 4th layers are empty scatter plots with larger msize
+    (scatter mpg weight if foreign==0, msymbol(o) mcolor(orange)) ///
+    (scatter mpg weight if foreign==1, msymbol(o) mcolor(green))  ///
+    (scatter mpg weight if mpg==., msymbol(o) mcolor(orange) msize(*3)) ///
+    (scatter mpg weight if mpg==., msymbol(o) mcolor(green)  msize(*3)), ///
+    legend(order(3 4) label(3 domestic) label(4 foreign))
+
+```
+
+Python contains a lot of libraries, which allows different implementations of the same plot type. For instance, the bubble plot can be implemented using either `matplotlib` or `Seaborn`. Interestingly, the `matplotlib` package inherits lots of nice properties from MATLAB. Hence it is possible to make plots similar to MATLAB using this package. 
+
+It is a little bit difficult to implement complicated legend in Python using `matplotlib` (e.g. the size legend in the bubble plot). 
+The same graph in Python can take more lines of code than using MATLAB. 
+It is also worth noting that Python programs become much slower when the data size gets larger.
+
