@@ -24,7 +24,7 @@ Here are some quck links toward core parts of source files:
 #### &emsp; STATA
 &emsp; [Code](./STATA/stata_code.do) <br/>
 #### &emsp; Python
-&emsp; [Code](./Python/python_code.R) <br/> 
+&emsp; [Code](./Python/Python_Code.ipynb) <br/> 
 #### &emsp; MATLAB
 &emsp; [Code_BubblePlot](./MATLAB/bubbleplot_new.m) <br/>
 &emsp; [Code_InteractivePlot](./MATLAB/interactve_plots.m) <br/>
