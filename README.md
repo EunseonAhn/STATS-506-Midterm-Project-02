@@ -30,6 +30,6 @@ Here are some quck links toward core parts of source files:
 All groups members reviewed other's code and process and then finalized our work. Feel free to check the pull requests/commits in our repository to find the record of code reviewing. 
 
 ### Collaboration
-Intermediate work of the draft is documented in Google Docs [here](https://docs.google.com/document/d/1Ll_wvns7VoLCHO6lnm5YkAHmTlGQXR6Xjt7Tj-3cLvI/edit#).
-Collaboration is conducted through github, e-mails, commenting on the shared Google Docs document linked above.
+Intermediate works of the draft are documented in Google Docs [here](https://docs.google.com/document/d/1Ll_wvns7VoLCHO6lnm5YkAHmTlGQXR6Xjt7Tj-3cLvI/edit#).
+Collaboration is conducted through github, e-mails, commenting on codes and the shared Google Docs document linked above.
 
