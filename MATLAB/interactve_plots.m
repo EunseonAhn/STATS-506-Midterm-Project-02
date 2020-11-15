@@ -21,13 +21,6 @@
 % *
 % * 79: --------------------------------------------------------------------- *
 
-
-%% Interactive Plots
-%  Clickable Legend Toolbox was downloaded from MATLAB FileExchange: 
-%       https://www.mathworks.com/matlabcentral/fileexchange/21799-
-%       clickablelegend-interactive-highlighting-of-data-in-figures
-%  ** Note: 
-
 %% Data Prep
 addpath('clickable_legend')
 
