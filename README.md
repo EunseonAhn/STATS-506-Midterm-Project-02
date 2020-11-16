@@ -1,8 +1,10 @@
 ## STATS 506 FA20 Midterm Group Project 
-### Group 2 Members:
-* EunSeon Ahn
-* Yanyu Lang 
-* Tianshi Wang
+### Group 2 Members & Roles  
+
+* EunSeon Ahn - MATLAB
+* Yanyu Lang - R
+* Tianshi Wang - Python
+* All - STATA
 
 
 ### Data Visualization of COVID-19 Data
