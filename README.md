@@ -2,7 +2,7 @@
 ### Group 2 Members & Roles  
 
 * EunSeon Ahn - MATLAB
-* Yanyu Lang - R
+* Yanyu Long - R
 * Tianshi Wang - Python
 * All - STATA
 
