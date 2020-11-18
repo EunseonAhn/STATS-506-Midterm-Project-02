@@ -21,7 +21,7 @@ COVID-19 has caused significant disruptions in the daily lives of people around 
 
 
 ### Source Files
-Here are some quck links toward core parts of source files:
+Here are the direct links to core parts of source files:
 <br/> 
 * **R** &emsp;[Code](./R/r_code.R) <br/> 
 * **STATA**  &emsp;[Code](./STATA/stata_code.do) <br/>
