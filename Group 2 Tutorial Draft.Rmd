@@ -1,7 +1,7 @@
 ---
-title: "STATS506 Midterm Project"
+title: "STATS 506 Midterm Project"
 author: "[Group2](https://github.com/SkyWang0919/STATS-506-Midterm-Project-02): EunSeon Ahn, Tianshi Wang, Yanyu Long"
-date: "November 13, 2020"
+date: "November 18, 2020"
 output: 
   html_document:
     toc: true
@@ -105,8 +105,8 @@ format_table = function(table, full_wid = FALSE,
   return(table)
 }
 ```
-
-
+****
+# Data Visualization of COVID-19 DATA
 ## Introduction
 Given the high relevance of COVID-19 in 2020 and the impact it has on the vast majority of individuals around the globe, staying informed regarding the current status and spread of COVID around the world has become a daily task for many people. While the severity of the situation necessitates daily monitoring and continuous tracking of the virus, generating enormous amounts of data each day, this also makes it easy for the general population to be overwhelmed by the overabundance of COVID-related data made available from the scientific community. When dealing with such the issue of big datasets, data visualization can serve the critical function of making large data more accessible and comprehensible to the public and the decision makers at large. In our project, we will explore a few of these different graphical concepts that may facilitate a better understanding of the large amounts of information and see how such concepts can turn simple numbers into a relevant narrative. 
 
@@ -135,10 +135,13 @@ Using the same dataset, we’ll also demonstrate how to create an interactive pl
 ### Software/Tools
 In this tutorial, we are using R, STATA, MATLAB and Python to show how these graphical concepts may be implemented.  
 
-*  For R, the following libraries were used: `tidyverse` (manipulation of data), `ggplot2` (plotting), `Cowplot` (plotting), `ggplotly` (adding interactive functionality)
-*  For MATLAB, there are no specific “libraries” as these functions are all built-in to the main MATLAB software. To add the interactive functionality, `Clickable Legend Toolbox` was downloaded from MATLAB File Exchange
-*  For Python, the following libraries were used: `numpy` (manipulation of data) , `pandas` (manipulation of data), `matplotlib` (plotting), `seaborn` (plotting), `plotly` (adding interactive functionality)
-*  For STATA, the built-in command `scatter` and `twoway histogram` are used to create the three subplots in marginal plots, and user-written command `grc1leg` is used to combine these subplots into one figure with a command legend. `Scatter` is also used to create the bubble plot.
+Software| Relevant Libraries
+------------ | ------------------------------------------------------------
+R |  `tidyverse` (manipulation of data), `ggplot2` (plotting), `Cowplot` (plotting), `ggplotly` (adding interactive functionality)
+Stata | the built-in command `scatter` and `twoway histogram` used to create the three subplots in marginal plots, and user-written command `grc1leg` is used to combine these subplots into one figure with a command legend. `Scatter` is also used to create the bubble plot.
+Python | `numpy` (manipulation of data) , `pandas` (manipulation of data), `matplotlib` (plotting), `seaborn` (plotting), `plotly` (adding interactive functionality)
+MATLAB | `Clickable Legend Toolbox` from MATLAB File Exchange (adding interactive functionality) + built-in base functions
+
 
 
 ### To-do List  
@@ -154,6 +157,7 @@ The following tasks are yet to be finished:
     *  MATLAB: Add a GIF of the interaction
     *  MATLAB: Go into the optional parameter settings for `clickableLegend`
 
+****
 
 ## Marginal Histogram {.tabset .tabset-pills}
 
@@ -753,7 +757,7 @@ if (file.exists(pic_name)){
 }
 ```
 
-
+****
 
 ## Bubble plot {.tabset .tabset-pills}
 
@@ -1161,7 +1165,7 @@ if (file.exists(pic_name)){
 ##### {-}
 
 
-
+****
 
 ## Interactive plot {.tabset .tabset-pills}
 Interactive plots allow us to manipulate the viewing of the data points plotted and can be useful in focusing on specific aspect of the data. 
