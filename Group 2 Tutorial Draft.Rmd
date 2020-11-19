@@ -1,7 +1,7 @@
 ---
 title: "STATS 506 Midterm Project"
 author: "[Group2](https://github.com/SkyWang0919/STATS-506-Midterm-Project-02): EunSeon Ahn, Tianshi Wang, Yanyu Long"
-date: "November 18, 2020"
+date: "November 19, 2020"
 output: 
   html_document:
     toc: true
@@ -13,7 +13,7 @@ body{ /* Normal */
   font-size: 15px;
 }
 td{ /* Table  */
-  font-size: 13px;
+  font-size: 14px;
 }
 #TOC{ /* Table of contents */
   font-size: 16px;
@@ -35,7 +35,7 @@ span.math{ /* Formulas */
   font-size: 13px;
 }
 blockquote {
-  font-size: 14px;
+  font-size: 15px;
 }
 pre { /* Scrollable code block */
   max-height: 300px;
@@ -147,12 +147,14 @@ MATLAB | `Clickable Legend Toolbox` from MATLAB File Exchange (adding interactiv
 
 
 ### To-do List  
-The following tasks are yet to be finished:  
 
-*  General requirements
+*  General
+    *  Add figure/table captions when appropriate, and make sure 
+    they are descriptive
     *  Include references, if any
     *  R & STATA & Python: add more inline comments to help understand the data
 *  Marginal plots
+    *  Add opening text to briefly describe the motivation to use marginal plots
     *  STATA: Look into the implementation of stacked histogram
     *  MATLAB: Implement marginal plots with `scatterhistogram`
 *  Interactive plots
@@ -164,14 +166,14 @@ The following tasks are yet to be finished:
 ## Marginal Histogram {.tabset .tabset-pills}
 
 *  Variables
-    *  *ID: State & Date*
+    *  ID: State & Date
     *  Race
     *  #Cases
     *  #Deaths
 *  This figure presents only the **Nov 1, 2020** data.  
 *  The Race Data Entry file specifies 9 different racial and ethnicity categories: White, Black, LatinX (Hispanic or Latino), Asian, AIAN (American Indian or Alaska Native), NHPI (Native Hawaiian and Pacific Islander), Multiracial, Other, and Unknown. Since plotting of all those groups would result in a scatterplot that was overcrowded and confusing to interpret, we narrowed down the dataset to only look at 4 different racial groups: White, Black, Asian, and LantinX.  
 
-### R {.tabset .tabset-pills}
+### R {.tabset}
 
 ```{r, eval = FALSE}
 # setup
@@ -632,7 +634,7 @@ ylabel('Deaths')
 title('Total confirmed COVID-19 deaths vs. cases, U.S. States (11/01/20)')
 ```
 
-```{r matlab_marginal1, echo = FALSE, out.width = '60%'}
+```{r matlab_marginal1, echo = FALSE, out.width = '70%'}
 pic_name = "./Marginal1.png"
 if (file.exists(pic_name)){
   knitr::include_graphics(pic_name)
@@ -663,7 +665,7 @@ axis(h(1),'auto');  % Sync axes
 hold off;
 ```
 
-```{r matlab_marginal2, echo = FALSE, out.width = '60%'}
+```{r matlab_marginal2, echo = FALSE, out.width = '70%'}
 pic_name = "./Marginal2.png"
 if (file.exists(pic_name)){
   knitr::include_graphics(pic_name)
@@ -760,6 +762,8 @@ if (file.exists(pic_name)){
 }
 ```
 
+## {- .unlisted .unnumbered}
+
 ****
 
 ## Bubble plot {.tabset .tabset-pills}
@@ -767,7 +771,7 @@ if (file.exists(pic_name)){
 In our project, we use bubble plot to see the relationship between stringency index, human development index, and total # of deaths in each country. Each bubble represents a single country with x-axis measuring the stringency index, y-axis measuring the human development index, and the size of the bubble measuring the total number of deaths in the country at the time of 10/20/20. Bubble plot is useful because it allows us to easily visualize 3 dimensions of the data rather than the conventional 2.  
 
 *  Variables
-    *  *ID: location(iso_code) & date*
+    *  ID: location(iso_code) & date
     *  continent
     *  total_deaths_per_million
     *  stringency_index
@@ -1035,7 +1039,7 @@ b5.MarkerFaceAlpha = 0.4; b6.MarkerFaceAlpha = 0.4;
 ```
 
 
-```{r matlab_bubble1, echo = FALSE, out.width = '60%'}
+```{r matlab_bubble1, echo = FALSE, out.width = '70%'}
 pic_name = "./bubble1.png"
 if (file.exists(pic_name)){
   knitr::include_graphics(pic_name)
@@ -1048,7 +1052,7 @@ We can further specify the color of the bubbles for each group with the pair opt
 ex1 = bubblechart(x1,y1,sz1, "red");
 ```
 
-```{r matlab_bubble2, echo = FALSE, out.width = '60%'}
+```{r matlab_bubble2, echo = FALSE, out.width = '55%'}
 pic_name = "./bubble2.png"
 if (file.exists(pic_name)){
   knitr::include_graphics(pic_name)
@@ -1064,7 +1068,7 @@ ex2.CData = [0 0 0];
 ```
 
 
-```{r matlab_bubble3, echo = FALSE, out.width = '60%'}
+```{r matlab_bubble3, echo = FALSE, out.width = '55%'}
 pic_name = "./bubble3.png"
 if (file.exists(pic_name)){
   knitr::include_graphics(pic_name)
@@ -1093,7 +1097,7 @@ new2 = new2.dropna(axis=0, how='any')
 new2.head()
 ```
 
-##### Creating the bubble plot {.tabset .tabset-pills}
+##### Creating the bubble plot {.tabset}
 
 ###### Seaborn
 
@@ -1122,7 +1126,7 @@ plt.savefig("Bubble_plot_Seaborn_color_by_variable_Seaborn_scatterplot.png",
 ```
 
 
-```{r python_bubble_seaborn, echo = FALSE, out.width = '60%'}
+```{r python_bubble_seaborn, echo = FALSE, out.width = '70%'}
 pic_name = "./python_bubble_seaborn.png"
 if (file.exists(pic_name)){
   knitr::include_graphics(pic_name)
@@ -1159,7 +1163,7 @@ plt.show()
 ```
 
 
-```{r python_bubble_matplotlib, echo = FALSE, out.width = '60%'}
+```{r python_bubble_matplotlib, echo = FALSE, out.width = '70%'}
 pic_name = "./python_bubble_matplotlib.png"
 if (file.exists(pic_name)){
   knitr::include_graphics(pic_name)
@@ -1168,16 +1172,17 @@ if (file.exists(pic_name)){
 
 ##### {-}
 
+## {- .unlisted .unnumbered}
 
 ****
 
 ## Interactive plot {.tabset .tabset-pills}
 Interactive plots allow us to manipulate the viewing of the data points plotted and can be useful in focusing on specific aspect of the data. 
-In this example, we will plot an interactive histogram comparing the # of cases, deaths, tests performed, and hospitalized across a few different countries in Europe.  ([Dataset](https://ourworldindata.org/covid-hospitalizations)). 
+In this example, we will plot an interactive histogram comparing the # of cases, deaths, tests performed, and hospitalized across a few different countries in Europe ([dataset](https://ourworldindata.org/covid-hospitalizations)). 
 Clicking the legend in the plot will either hide or show the bar associated with the specific item in the legend.
 
 *  Variables
-    *  *ID: location(iso_code) & date*
+    *  ID: location(iso_code) & date
     *  total_cases_per_million
     *  total_deaths_per_million
     *  hosp_patients_per_million
@@ -1469,7 +1474,9 @@ offline.plot(fig, filename='interactive.html')
 htmltools::includeHTML("./ref-PYTHON/interactive.html")
 ```
 
+## {- .unlisted .unnumbered}
 
+****
 
 ## Discussion  
 
