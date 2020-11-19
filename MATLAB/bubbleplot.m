@@ -10,9 +10,9 @@
 % *
 % * Author: EunSeon Ahn, Yanyu Long, Tianshi Wang
 % * Updated: Nov 19, 2020
-% * ------------------------------------------------------------------------- *
+% * --------------------------------------------------------------------- *
 % *
-% * 79: --------------------------------------------------------------------- *
+% * 79: ----------------------------------------------------------------- *
 
 %% Data Prep
 fileName = './Data/owid-covid-data.csv';
@@ -95,7 +95,8 @@ hold on
 bubblechart(x6, y6, sz6, yellow) % S. America
 hold off
 
-sgtitle('Total # of Deaths Across Gov. Stringency Index and Human Development Index')
+sgtitle(['Total # of Deaths Across Gov. Stringency Index ',...
+    'and Human Development Index'])
 xlabel('Stringency Index')
 ylabel('Human Development Index')
 
@@ -120,7 +121,7 @@ ex1 = bubblechart(x1,y1,sz1, "red");
 ex2 = bubblechart(x1,y1,sz1, "red");
 ex2.CData = [0 0 0];
 
-% * 79: --------------------------------------------------------------------- *
+% * 79: ----------------------------------------------------------------- *
 
 
 
