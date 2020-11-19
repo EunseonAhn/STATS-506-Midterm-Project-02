@@ -140,7 +140,7 @@ In this tutorial, we are using R, STATA, MATLAB and Python to show how these gra
 Software| Relevant Libraries
 ------------ | ------------------------------------------------------------
 R |  `tidyverse` (manipulation of data), `ggplot2` (plotting), `Cowplot` (plotting), `ggplotly` (adding interactive functionality)
-Stata | the built-in command `scatter` and `twoway histogram` used to create the three subplots in marginal plots, and user-written command `grc1leg` is used to combine these subplots into one figure with a command legend. `Scatter` is also used to create the bubble plot.
+STATA | the built-in command `scatter` and `twoway histogram` used to create the three subplots in marginal plots, and user-written command `grc1leg` is used to combine these subplots into one figure with a command legend. `Scatter` is also used to create the bubble plot.
 Python | `numpy` (manipulation of data) , `pandas` (manipulation of data), `matplotlib` (plotting), `seaborn` (plotting), `plotly` (adding interactive functionality)
 MATLAB | `Clickable Legend Toolbox` from MATLAB File Exchange (adding interactive functionality) + built-in base functions
 
@@ -626,9 +626,9 @@ for i = 1 : 4
 end
 ```
 
-##### Creating the marginal plots
+##### Creating the marginal plots {.tabset}
 
-#### scatterhist
+###### scatterhist
 
 Now that all the variables are ready, we use the scatterhist function to create a scatter plot with histogram plotted along the margins. Here, we specify group label colors to match colors used in R plot. We also specify the location where want the histograms to be plotted with respect to the scatter plot using argument pair 'Location', 'NorthEast' and the direction that we want the histogram to point by argument pair 'Direction', 'out'.
 
@@ -666,7 +666,7 @@ if (file.exists(pic_name)){
 
 While the built-in function, `scatterhist`, is useful for quick plotting because many properties of the figure and the layout do not have to be specified, faces the downside of not being able to customize various settings which the user may be looking for. Alternatively, we may use `subplot` functionality to get around this issue which requires manually creating a marginal histogram. Note that this process will be much more tedious.
 
-####  Subplotting
+######  subplot
 
 In MATLAB, we can also manually create a marginal histogram by arranging together 2 histograms and a scatterplot together into a single figure. Because we're working with multiple, separate functions like `hist ` and `scatter` with distinct handles for each group, we have much larger customizability of the arranged plots, where as `scatterhist` prevents users from grabbing all of figure's property handles and modifying them, like transparency and bin width specific to each histogram. 
 
@@ -778,6 +778,8 @@ sgtitle('Total confirmed COVID-19 deaths vs. cases, U.S. States (11/03/20)')
 xlabel('Cases')
 ylabel('Deaths')
 ```
+
+##### {-}
 
 ### Python
 
