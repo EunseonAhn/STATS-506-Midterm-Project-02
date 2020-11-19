@@ -5,8 +5,8 @@
 % * For MATLAB help file on scatterhist functions refer to:
 % *     https://www.mathworks.com/help/stats/scatterhist.html
 % *
-% * This script relies on the use of subaxis function, which comes
-% * from subaxis tool box:
+% * This script relies on the use of subaxis function, which comes from
+% *      subaxis tool box:
 % *          https://www.mathworks.com/matlabcentral/
 % *                             fileexchange/3696-subaxis-subplot
 % *
@@ -43,7 +43,7 @@ end
 race_idx = find(contains(colnames, 'Deaths'));
 race_idx = race_idx(2 : 10); % remove total and ethnicity info
 races = raceData(end, race_idx);
-raceID =  strrep(races.Properties.VariableNames,'Deaths_','');
+raceID =  strrep(races.Properties.VariableNames,'Deaths_', '');
 
 plotData = raceData(1 : end, {'Date', 'State', 'Cases_White', ...
     'Cases_Black', 'Cases_LatinX', 'Cases_Asian', 'Deaths_White', ...
@@ -149,11 +149,11 @@ scatter(cases(asian), deaths(asian), 'filled', ...
 linkaxes([ah1, ah3], 'y')
 linkaxes([ah3, ah2], 'x')
 ah1.Box = 'off';
-% ah1.View = [180, -90];
+% ah1.View = [180, -90]; % changing direction of histogram
 ah1.Visible = 'off';
 ah2.Visible = 'off';
 ah2.Box = 'off';
-%ah2.View = [0, -90];
+%ah2.View = [0, -90]; % changing direction of histogram
 
 % Create single universal legend
 h = [p1;p2;p3;p4];
@@ -166,9 +166,10 @@ set(lgd, 'Position', newPosition, 'Units', newUnits);
 title(lgd, 'Races')
 
 % Give title and label axis in scatterplot
-sgtitle('Total confirmed COVID-19 deaths vs. cases, U.S. States (11/03/20)')
+sgtitle(['Total confirmed COVID-19 deaths vs. cases, ', ...
+    'U.S. States (11/03/20)'])
 xlabel('Cases')
 ylabel('Deaths')
 
 
-% * 79: ------------------------------------------------------------------ *
+% * 79: ----------------------------------------------------------------- *
