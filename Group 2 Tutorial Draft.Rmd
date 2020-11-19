@@ -295,6 +295,7 @@ creating marginal plots in R.
 #### Cowplot
 Using package `Cowplot` to create marginal plots is less succinct, 
 but more flexible. Unlike `ggExtra::ggMarginal`, `Cowplot` allows:
+
 *  putting the marginal plots on the left/bottom side of the main image;
 *  creating a marginal histogram for one axis, and a box plot/density plot for 
 another. 
@@ -574,9 +575,11 @@ contains the relevant data necessary for plotting.
 % Read in data
 fileName = 'Race Data Entry - CRDT.csv';
 raceData = readtable(fileName);
+
 %Select only 11/01/20 data
 newestDate = 20201101;
 raceData = raceData(raceData.Date == newestDate,:);
+
 % Convert all case/death # to double
 colnames = raceData.Properties.VariableNames;
 for i = 3:length(colnames)
@@ -587,51 +590,71 @@ for i = 3:length(colnames)
 end
 ```
 
-
-Narrowed down the dataset to only look at 4 different racial groups: White, Black, Asian, Lantinx.
+Narrowing down the dataset to only look at 4 different racial groups: White, Black, Latinx, and Asian.
 
 ```{matlab, eval = FALSE}
+%% Get race info
 % Grabbing the different races identified in dataset
-race_idx = find(contains(colnames,'Deaths'));
-race_idx = race_idx(2:10); % remove total and ethnicity info
+race_idx = find(contains(colnames, 'Deaths'));
+race_idx = race_idx(2 : 10); % remove total and ethnicity info
 races = raceData(end, race_idx);
-raceID =  strrep(races.Properties.VariableNames,'Deaths_','');
-% Grab cases and deaths for each race, convert to column vector
-cases = [];
-%cases = table2array(raceData(1:end, 4:12)); % for all races
-cases = table2array(raceData(1:end, 4:7));
-cases = reshape(cases,[],1);
-deaths = [];
-%deaths = table2array(raceData(1:end, 17:25)); % for all races
-deaths = table2array(raceData(1:end, 17:20)); 
-deaths = reshape(deaths,[],1);
+raceID =  strrep(races.Properties.VariableNames, 'Deaths_','');
+
+% selecting relevant columns
+plotData = raceData(1 : end, {'Date', 'State', 'Cases_White', ...
+    'Cases_Black', 'Cases_LatinX', 'Cases_Asian', 'Deaths_White', ...
+    'Deaths_Black', 'Deaths_LatinX', 'Deaths_Asian'});
+
+% reshape case variable for plotting
+case_col = startsWith(plotData.Properties.VariableNames, 'Cases');
+cases = table2array(plotData(:, case_col));
+cases = reshape(cases, [], 1);
+
+% reshape death variable for plotting
+death_col = startsWith(plotData.Properties.VariableNames, 'Deaths');
+deaths = table2array(plotData(:, death_col));
+deaths = reshape(deaths, [], 1);
 ```
 
-MATLAB's scatterhist plot requires that we pass in group label that is the same dimensions as the x and y datapoints being plotted, so we create a new array containing labels match.
+MATLAB's scatterhist plot requires that we pass in group label that is the same dimension as the x and y datapoints being plotted, so we create a new array containing matched labels.
 
 ```{matlab, eval = FALSE}
 % Generate race labels matching the column vector for cases/deaths
 race_label = [];
-for i = 1:4
-    race_label = [race_label; repmat(raceID(i),size(raceData,1),1)];
+for i = 1 : 4
+    race_label = [race_label; repmat(raceID(i), size(raceData,1), 1)];
 end
 ```
 
 ##### Creating the marginal plots
 
-Now that all the variables are ready, we use the scatterhist function to create a scatter plot with histogram plotted along its margins.
+#### scatterhist
+
+Now that all the variables are ready, we use the scatterhist function to create a scatter plot with histogram plotted along the margins. Here, we specify group label colors to match colors used in R plot. We also specify the location where want the histograms to be plotted with respect to the scatter plot using argument pair 'Location', 'NorthEast' and the direction that we want the histogram to point by argument pair 'Direction', 'out'.
 
 ```{matlab, eval = FALSE}
 x = cases;
 y = deaths;
+
+% Specify color to be used for each race grouping
+red = [236, 95, 97] / 255;
+blue = [115, 165, 205] / 255;
+green = [131, 199, 129] / 255;
+purple = [173, 113, 182] / 255;
+c_array = [red; blue; green; purple];
+
 figure
-% Alternatiely, we could be using scatterhistogram function but this
-% requires MATLAB version R2018b minimum. This would allow us to adjust transparency
-% of the plotted points.
-h = scatterhist(x,y,'Group',race_label, 'Style','bar', 'marker','o');
+% scatterhist does not allow us to adjust the transparency of the plots, 
+% to do this we can generate marginal histogram from scratch using subplot
+h = scatterhist(x, y, 'Group', race_label, 'Style', 'bar', ...
+    'marker', '.', 'Location', 'NorthEast', 'Direction','out', ...
+    'color', c_array, 'MarkerSize', 16);
+
+[leg,~] = legend('show');
+title(leg,'Race')
 xlabel('Cases')
 ylabel('Deaths')
-title('Total confirmed COVID-19 deaths vs. cases, U.S. States (11/01/20)')
+sgtitle('Total confirmed COVID-19 deaths vs. cases, U.S. States (11/03/20)') 
 ```
 
 ```{r matlab_marginal1, echo = FALSE, out.width = '70%'}
@@ -641,35 +664,119 @@ if (file.exists(pic_name)){
 }
 ```
 
-<span style="color:red">***[To be added in the final report]***:</span> 
-Newer versions of MATLAB (starting with version R2018b), a new function `scatterhistogram` (in comparison to the above `scatterhist`) has been implemented which allows the user to be able to adjust the transparency of the scatter plot points. The implementation of this similar function will also be demonstrated in the final report.
+While the built-in function, `scatterhist`, is useful for quick plotting because many properties of the figure and the layout do not have to be specified, faces the downside of not being able to customize various settings which the user may be looking for. Alternatively, we may use `subplot` functionality to get around this issue which requires manually creating a marginal histogram. Note that this process will be much more tedious.
 
-The following code shows how we may swap out the histogram for a boxplot. 
-In MATLAB, in order to plot onto the same figure rather than onto a new figure, we use the command:
+####  Subplotting
+
+In MATLAB, we can also manually create a marginal histogram by arranging together 2 histograms and a scatterplot together into a single figure. Because we're working with multiple, separate functions like `hist ` and `scatter` with distinct handles for each group, we have much larger customizability of the arranged plots, where as `scatterhist` prevents users from grabbing all of figure's property handles and modifying them, like transparency and bin width specific to each histogram. 
+
+We'll use the toolbox 'subaxis' which builds off the built-in `subplot` functionality in order to minimize the margins between each subplots. This toolbox can be directly downloaded from [link](https://www.mathworks.com/matlabcentral/fileexchange/3696-subaxis-subplot) but it is also included in the repository containing this tutorial. 
+
 ```{matlab, eval = FALSE}
-% If wanting to put box plots instead
-hold on;
-```
-Note that h(1) is the figure handle to the scatterplot, h(2) to bottom histogram, and h(3) to left histogram. After getting the color labels from the scatterplot, we can convert the histogram to boxplot using following code:
-```{matlab, eval = FALSE}
-clr = get(h(1),'colororder');
-
-boxplot(h(2),x,race_label,'orientation','horizontal',...
-     'label',{'','','',''},'color',clr);
-boxplot(h(3),y,race_label,'orientation','horizontal',...
-     'label', {'','','',''},'color',clr);
-
-set(h(2:3),'XTickLabel','');
-view(h(3),[270,90]);  % Rotate the Y plot
-axis(h(1),'auto');  % Sync axes
-hold off;
+addpath('subaxis')
 ```
 
-```{r matlab_marginal2, echo = FALSE, out.width = '70%'}
-pic_name = "./Marginal2.png"
-if (file.exists(pic_name)){
-  knitr::include_graphics(pic_name)
-}
+Working off the preprocessed data from earlier steps above, we now have to manually plot a histogram for each race and overlay them on top of one another. We do this two times for each of the two histograms (deaths and cases) that's needed for a marginal histogram.
+
+`subaxis` functions allows to arrange multiple plots into a single figure and additionally allows us to specify the margins surrounding each subplot.
+
+```{matlab, eval = FALSE}
+%% Using subplot to create marginal histogram
+% breaking race data into separate arrays
+white = find(race_label == "White");
+black = find(race_label == "Black");
+latinx = find(race_label == "LatinX");
+asian = find(race_label == "Asian");
+
+```
+
+*  Creating top/right margin plots
+
+```{matlab, eval = FALSE}
+figure(1)
+clf
+% y-data histogram
+ah1 = subaxis(2, 2, 4, 'sh', 0, 'sv', 0.01, 'padding', 0, 'margin', 0.1);
+p1 = histogram(deaths(white), 'Orientation', 'horizontal', ...
+    'Normalization', 'probability', 'BinWidth', 1000, ...
+    'Facecolor', red);
+hold on
+p2 = histogram(deaths(black), 'Orientation', 'horizontal', ...
+    'Normalization', 'probability', 'BinWidth', 1000, ...
+    'Facecolor', blue);
+hold on
+p3 = histogram(deaths(latinx), 'Orientation', 'horizontal', ...
+    'Normalization', 'probability', 'BinWidth', 1000, ...
+    'Facecolor', green);
+hold on
+p4 = histogram(deaths(asian), 'Orientation', 'horizontal', ...
+    'Normalization', 'probability', 'BinWidth', 1000, ...
+    'Facecolor', purple);
+
+% x-data histogram
+ah2 = subaxis(2, 2, 1,'sh', 0.03, 'sv', 0.03, 'padding', 0, 'margin', 0.1);
+histogram(cases(white), 'Normalization', 'probability', ...
+    'BinWidth', 20000, 'Facecolor', red)
+hold on
+histogram(cases(black), 'Normalization', 'probability', ...
+    'BinWidth', 20000, 'Facecolor', blue)
+hold on
+histogram(cases(latinx), 'Normalization', 'probability', ...
+    'BinWidth', 20000, 'Facecolor', green)
+hold on
+histogram(cases(asian), 'Normalization', 'probability', ...
+    'BinWidth', 20000, 'Facecolor', purple)
+```
+
+The transparency of the scatter points can now be specified because this feature is supported through built-in function `scatter`, using the argument `Markerfacealpha`. I have specified 60% (denoted as 0.6) opacity for all the points. 
+
+```{matlab, eval = FALSE}
+% scatterplot
+ah3 = subaxis(2, 2, 3, 'sh', 0.03, 'sv', 0.01, ...
+    'padding', 0, 'margin', 0.1);
+hold on
+scatter(cases(white), deaths(white), 'filled', ...
+     'MarkerFaceColor', red, 'Markerfacealpha', 0.6)
+scatter(cases(black), deaths(black), 'filled', ...
+    'MarkerFaceColor', blue, 'Markerfacealpha', 0.6)
+scatter(cases(latinx), deaths(latinx), 'filled', ...
+    'MarkerFaceColor', green, 'Markerfacealpha', 0.6)
+scatter(cases(asian), deaths(asian), 'filled', ...
+    'MarkerFaceColor', purple, 'Markerfacealpha', 0.6)
+```
+
+We need to remove all the boxes and axes information from the histograms since we're combining them with the scatterplot. Similar to function `scatterhist`'s argument 'Direction' specifying the direction which the histogram plots, `View` property of the subplots can be adjusted to rotate the histograms in the desired direction (commented out in the code below `ah1.View = [180, -90]`). 
+Similarly, the arrangement of the subplot is reponsible for specifying the location of the histograms, whether they're to the top or bottom, and left or right of the scatter plot.  
+
+```{matlab, eval = FALSE}
+% Remove boxes and axes information from the histogram
+linkaxes([ah1, ah3], 'y')
+linkaxes([ah3, ah2], 'x')
+ah1.Box = 'off';
+% ah1.View = [180, -90];
+ah1.Visible = 'off';
+ah2.Visible = 'off';
+ah2.Box = 'off';
+%ah2.View = [0, -90];
+```
+
+We finish off by creating a single universal legend for all three plots. Since this will not happen automatically when manually plotting and arranging a marginal histogram.
+
+```{matlab, eval = FALSE}
+% Create single universal legend
+h = [p1;p2;p3;p4];
+hold on
+lgd = legend(h, 'White', 'Black', 'Latinx', 'Asian');
+lgd.Box = 'off';
+newPosition = [0.5 0.6 0.13 0.13];
+newUnits = 'normalized';
+set(lgd, 'Position', newPosition, 'Units', newUnits);
+title(lgd, 'Races')
+
+% Give title and label axis in scatterplot
+sgtitle('Total confirmed COVID-19 deaths vs. cases, U.S. States (11/03/20)')
+xlabel('Cases')
+ylabel('Deaths')
 ```
 
 ### Python
