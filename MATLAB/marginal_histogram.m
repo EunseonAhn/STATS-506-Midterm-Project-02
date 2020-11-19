@@ -5,6 +5,10 @@
 % * For MATLAB help file on scatterhist functions refer to:
 % *     https://www.mathworks.com/help/stats/scatterhist.html
 % *
+% * This script relies on the use of subaxis function, which comes
+% * from subaxis tool box:
+% *          https://www.mathworks.com/matlabcentral/
+% *                             fileexchange/3696-subaxis-subplot
 % *
 % * The COVID-19 racial data plotted in this tutorial comes from:
 % *     https://covidtracking.com/race
@@ -82,26 +86,6 @@ title(leg,'Race')
 xlabel('Cases')
 ylabel('Deaths')
 sgtitle('Total confirmed COVID-19 deaths vs. cases, U.S. States (11/03/20)') 
-
-%% Switching from histogram to boxplot
-
-% % If wanting to put bax plots instead
-% hold on;
-% clr = get(h(1), 'colororder');
-% boxplot(h(2),x,race_label,'orientation','horizontal',...
-%      'label',{'','','',''},'color',clr);
-% boxplot(h(3),y,race_label,'orientation','horizontal',...
-%      'label', {'','','',''},'color',clr);
-% set(h(2:3),'XTickLabel','');
-% view(h(3),[270,90]);  % Rotate the Y plot
-% axis(h(1),'auto');  % Sync axes
-% title('test')
-% hold off;
-% 
-% h = findobj(gca,'Tag','Box');
-% for j=1:length(h)
-%     patch(get(h(j),'XData'),get(h(j),'YData'),c_array(j,:),'FaceAlpha',.5);
-% end
 
 %% Using subplot to create marginal histogram
 % we'll be using subaxis toolbox to minimize the margins between subplots
