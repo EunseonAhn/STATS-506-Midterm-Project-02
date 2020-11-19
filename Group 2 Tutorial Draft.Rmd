@@ -774,8 +774,8 @@ In our project, we use bubble plot to see the relationship between stringency in
     *  ID: location(iso_code) & date
     *  continent
     *  total_deaths_per_million
-    *  stringency_index
-    *  human_development_index
+    *  stringency_index (0 - 100, with 100 most strict)
+    *  human_development_index (0 - 1, with 1 most developed)
 *  This figure presents only the **Oct 20, 2020** data.
 
 
@@ -918,12 +918,16 @@ if (file.exists(pic_name)){
 ### MATLAB
 Bubble plot is a relatively new function ([bubblechart](https://www.mathworks.com/help/matlab/ref/bubblechart.html)) introduced to MATLAB in R2020b.  
 
+##### Reading in and pre-processing the data
+
 ```{matlab matlab_plot2_data, eval = FALSE}
 %% BubblePlots
 % For ref see: https://www.mathworks.com/help/matlab/ref/bubblechart.html
+
 %% Data Prep
-fileName = 'owid-covid-data.csv';
+fileName = './Data/owid-covid-data.csv';
 covid_orig = readtable(fileName);
+
 % Select 2020-10-20 Data
 newestDate = datetime([2020  10  20]);
 covid = covid_orig(covid_orig.date == newestDate,:);
@@ -954,6 +958,7 @@ cat("ans = 33")
 voi = {'location', 'continent', 'total_cases_per_million', ...
        'total_deaths_per_million','stringency_index',...
        'human_development_index'};
+
 % Remove international and world info and keep only variables of interest
 covid = covid(1:end-2, voi);
 ```
@@ -977,7 +982,9 @@ for k = 1 : size(covid, 1)
         covid.continent{k} = 6;
     end
 end
+
 covid = sortrows(covid, 2);
+
 x = table2array(covid(:,5)); % x-axis: Stringency index
 y = table2array(covid(:,6)); % y-axis: Human development index
 sz = table2array(covid(:,4)); % size: Total deaths per million
@@ -985,12 +992,11 @@ c = cell2mat(table2array(covid(:,2))); % color: continent
 ```
 
 
-In MATLAB, to create a bubble chart with different grouping colors, different groups have to be plotted separately and overlaid on top of one another.   
+In MATLAB, to create a bubble chart with different grouping colors, different groups have to be plotted separately and then overlaid on top of one another.   
+
+##### Creating the bubble plot
 
 ```{matlab matlab_plot2_plot, eval = FALSE}
-% To achieve different colors for each continent, we have to overlay
-% multiple bubble charts on top of one another. We need separated arrays
-% to do this.
 % Stringency index of countries grouped by continent
 x1 = x(c==1); x2 = x(c==2); x3 = x(c==3);
 x4 = x(c==4); x5 = x(c==5); x6 = x(c==6);
@@ -1000,24 +1006,35 @@ y4 = y(c==4); y5 = y(c==5); y6 = y(c==6);
 % Total Deaths per mil. of countries grouped by continent
 sz1 = sz(c==1); sz2 = sz(c==2); sz3 = sz(c==3);
 sz4 = sz(c==4); sz5 = sz(c==5); sz6 = sz(c==6);
+
 %% Plot data in a tiled chart layout
 figure
+
+% colors for plotting
+red = [234, 82, 84]/255;
+blue = [105, 158, 201]/255;
+green = [99, 185, 96]/255;
+purple = [177, 122, 186]/255;
+orange = [255, 186, 117]/255;
+yellow = [255, 255, 153]/255;
+
 t = tiledlayout(1,1);
 nexttile
-b1 = bubblechart(x1,y1,sz1);
+bubblechart(x1, y1, sz1, red) % Africa
 hold on
-b2 = bubblechart(x2,y2,sz2);
+bubblechart(x2, y2, sz2, blue) % Asia
 hold on
-b3 = bubblechart(x3,y3,sz3);
+bubblechart(x3, y3, sz3, green) % Europe
 hold on
-b4= bubblechart(x4,y4,sz4);
+bubblechart(x4, y4, sz4, purple) % N. America
 hold on
-b5 = bubblechart(x5,y5,sz5);
+bubblechart(x5, y5, sz5, orange) % Oceania
 hold on
-b6= bubblechart(x6,y6,sz6);
+bubblechart(x6, y6, sz6, yellow) % S. America
 hold off
-title('Total # of Deaths Across Gov. Stringency Index and Human Development Index')
-xlabel('Stringency Index (100 - strictest)')
+
+sgtitle('Total # of Deaths Across Gov. Stringency Index and Human Development Index')
+xlabel('Stringency Index')
 ylabel('Human Development Index')
 ```
 
@@ -1025,13 +1042,14 @@ We want to include both legend for the continents and the legend for the size of
 
 ```{matlab matlab_plot2_legend, eval = FALSE}
 blgd = bubblelegend('Total Death (Per Mil.)','Location','eastoutside');
-lgd = legend('Africa','Asia', 'Europe', 'N. America', 'Oceania', 'S. America');
+lgd = legend('Africa','Asia', 'Europe', 'North America', ...
+    'Oceania', 'South America');
+title(lgd, 'Continent')
 blgd.Layout.Tile = 'east';
 lgd.Layout.Tile = 'east';
 ```
 
-While the default value of transparency of the bubbles is set at 60% opacity, since we have large # of data points, we'll bring it down to 40% so it's easier to see all the points.  
-
+While the default value of transparency of the bubbles is set at 60% opacity, since we have large number of data points, we'll bring it down to 40% so it's easier to see all the points.  
 ```{matlab matlab_plot2_transparency, eval = FALSE}
 b1.MarkerFaceAlpha = 0.4; b2.MarkerFaceAlpha = 0.4;
 b3.MarkerFaceAlpha = 0.4; b4.MarkerFaceAlpha = 0.4;
