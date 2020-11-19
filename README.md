@@ -17,7 +17,7 @@ COVID-19 has caused significant disruptions in the daily lives of people around 
 
 ### Tutorial  
 
-* **Draft** &emsp;[Link](https://github.com/SkyWang0919/STATS-506-Midterm-Project-02/blob/main/Group%202%20Tutorial%20Draft.html)
+* **Draft** &emsp;[Link](https://raw.githack.com/SkyWang0919/STATS-506-Midterm-Project-02/main/Group%202%20Tutorial%20Draft.html)
 
 
 ### Source Files
