@@ -142,7 +142,7 @@ Software| Relevant Libraries
 R |  `tidyverse` (manipulation of data), `ggplot2` (plotting), `Cowplot` (plotting), `ggplotly` (adding interactive functionality)
 STATA | the built-in command `scatter` and `twoway histogram` used to create the three subplots in marginal plots, and user-written command `grc1leg` is used to combine these subplots into one figure with a command legend. `Scatter` is also used to create the bubble plot.
 Python | `numpy` (manipulation of data) , `pandas` (manipulation of data), `matplotlib` (plotting), `seaborn` (plotting), `plotly` (adding interactive functionality)
-MATLAB | `Clickable Legend Toolbox` from MATLAB File Exchange (adding interactive functionality) + built-in base functions
+MATLAB | `Clickable Legend Toolbox` (adding interactive functionality) and `subaxis` (allow margin adjustment on subplot) from MATLAB File Exchange, `plotly-graphing-library-for-matlab` (adding interactive functionality) from plotly (`bubblechart` requires ). ** NOTE: `bubblechart` function used in plotting bubblechart requires MATLAB_R2020b.
 
 
 
@@ -590,7 +590,7 @@ for i = 3:length(colnames)
 end
 ```
 
-Narrowing down the dataset to only look at 4 different racial groups: White, Black, Latinx, and Asian.
+Let's narrow down the dataset to only look at 4 different racial groups: White, Black, Latinx, and Asian since including all available racial categories would provide too much information on a single figure.
 
 ```{matlab, eval = FALSE}
 %% Get race info
@@ -616,7 +616,7 @@ deaths = table2array(plotData(:, death_col));
 deaths = reshape(deaths, [], 1);
 ```
 
-MATLAB's scatterhist plot requires that we pass in group label that is the same dimension as the x and y datapoints being plotted, so we create a new array containing matched labels.
+MATLAB's `scatterhist` requires that we pass in a group label that is the same dimension as the x and y datapoints being plotted, so we create a new array, `race_label`, containing matched labels.
 
 ```{matlab, eval = FALSE}
 % Generate race labels matching the column vector for cases/deaths
@@ -630,7 +630,7 @@ end
 
 ###### scatterhist
 
-Now that all the variables are ready, we use the scatterhist function to create a scatter plot with histogram plotted along the margins. Here, we specify group label colors to match colors used in R plot. We also specify the location where want the histograms to be plotted with respect to the scatter plot using argument pair 'Location', 'NorthEast' and the direction that we want the histogram to point by argument pair 'Direction', 'out'.
+Now that all the variables are ready, we use the `scatterhist` function to create a scatter plot with histogram plotted along the margins. Here, we specify group label colors to match colors used in R plot. We also specify the location where we want the histograms to be plotted with respect to the scatter plot using argument pair ('Location', 'NorthEast') and the direction that we want the histogram to point by argument pair ('Direction', 'out').
 
 ```{matlab, eval = FALSE}
 x = cases;
@@ -664,13 +664,13 @@ if (file.exists(pic_name)){
 }
 ```
 
-While the built-in function, `scatterhist`, is useful for quick plotting because many properties of the figure and the layout do not have to be specified, faces the downside of not being able to customize various settings which the user may be looking for. Alternatively, we may use `subplot` functionality to get around this issue which requires manually creating a marginal histogram. Note that this process will be much more tedious.
+While the built-in function `scatterhist` is useful for quick plotting because many properties of the figure and the layout do not have to be specified, this function faces the downside of not being able to customize various settings which the user may be looking to specify. Alternatively to `scatterhist `, we may use `subplot` functionality to get around this issue by manually creating a marginal histogram by combining the 3 components (scatterplot + 2 histograms). Please refer to the section 'subplot' for the walkthrough.
 
 ######  subplot
 
-In MATLAB, we can also manually create a marginal histogram by arranging together 2 histograms and a scatterplot together into a single figure. Because we're working with multiple, separate functions like `hist ` and `scatter` with distinct handles for each group, we have much larger customizability of the arranged plots, where as `scatterhist` prevents users from grabbing all of figure's property handles and modifying them, like transparency and bin width specific to each histogram. 
+In MATLAB, we can also manually create a marginal histogram by arranging together 2 histograms and a scatterplot into a single figure. Because we're working with multiple, separate functions like `hist ` and `scatter` with distinct plot handles for each group, we have much larger customizability of the arranged plots, whereas `scatterhist` prevents users from grabbing all of the figure's property handles and modifying them, like transparency and bin width specific to each histogram. 
 
-We'll use the toolbox 'subaxis' which builds off the built-in `subplot` functionality in order to minimize the margins between each subplots. This toolbox can be directly downloaded from [link](https://www.mathworks.com/matlabcentral/fileexchange/3696-subaxis-subplot) but it is also included in the repository containing this tutorial. 
+We'll be using the toolbox 'subaxis' which builds off the built-in `subplot` functionality in order to minimize the margins between each subplots. This toolbox can be directly downloaded from [link](https://www.mathworks.com/matlabcentral/fileexchange/3696-subaxis-subplot) but it is also included in the repository containing this tutorial. 
 
 ```{matlab, eval = FALSE}
 addpath('subaxis')
@@ -678,7 +678,7 @@ addpath('subaxis')
 
 Working off the preprocessed data from earlier steps above, we now have to manually plot a histogram for each race and overlay them on top of one another. We do this two times for each of the two histograms (deaths and cases) that's needed for a marginal histogram.
 
-`subaxis` functions allows to arrange multiple plots into a single figure and additionally allows us to specify the margins surrounding each subplot.
+`subaxis` functions allows us to arrange multiple plots into a single figure and additionally allows us to specify the margins surrounding each subplot.
 
 ```{matlab, eval = FALSE}
 %% Using subplot to create marginal histogram
@@ -1025,7 +1025,7 @@ if (file.exists(pic_name)){
 ```
 
 ### MATLAB
-Bubble plot is a relatively new function ([bubblechart](https://www.mathworks.com/help/matlab/ref/bubblechart.html)) introduced to MATLAB in R2020b.  
+Bubble plot is a relatively new function ([bubblechart](https://www.mathworks.com/help/matlab/ref/bubblechart.html)) introduced to MATLAB in R2020b. We'll need a minimum version of R2020b to be able to run this tutorial.  
 
 ##### Reading in and pre-processing the data
 
@@ -1101,7 +1101,7 @@ c = cell2mat(table2array(covid(:,2))); % color: continent
 ```
 
 
-In MATLAB, to create a bubble chart with different grouping colors, different groups have to be plotted separately and then overlaid on top of one another.   
+In MATLAB, to create a bubble chart with different grouping colors, different groups have to be plotted separately and then overlaid on top of one another. We can pass in an array of RGB values into `bubblechart` as the third argument to specify the color we want the bubbles to be for each group.
 
 ##### Creating the bubble plot
 
@@ -1147,7 +1147,7 @@ xlabel('Stringency Index')
 ylabel('Human Development Index')
 ```
 
-We want to include both legend for the continents and the legend for the size of the bubbles (bubblelegend). In order to include these 2 separate legends, we have to specify a layout of the tile.  
+We want to include both the legend for the continents and the legend for the size of the bubbles (`bubblelegend`). In order to include these 2 separate legends, we have to specify a layout for the tile.  
 
 ```{matlab matlab_plot2_legend, eval = FALSE}
 blgd = bubblelegend('Total Death (Per Mil.)','Location','eastoutside');
@@ -1158,7 +1158,8 @@ blgd.Layout.Tile = 'east';
 lgd.Layout.Tile = 'east';
 ```
 
-While the default value of transparency of the bubbles is set at 60% opacity, since we have large number of data points, we'll bring it down to 40% so it's easier to see all the points.  
+While the default value of the transparency of the bubbles is set at 60% opacity, we'll bring it down to 40% so it's easier to see all the points since we have a large number of data points.
+
 ```{matlab matlab_plot2_transparency, eval = FALSE}
 b1.MarkerFaceAlpha = 0.4; b2.MarkerFaceAlpha = 0.4;
 b3.MarkerFaceAlpha = 0.4; b4.MarkerFaceAlpha = 0.4;
@@ -1168,35 +1169,6 @@ b5.MarkerFaceAlpha = 0.4; b6.MarkerFaceAlpha = 0.4;
 
 ```{r matlab_bubble1, echo = FALSE, out.width = '70%'}
 pic_name = "./bubble1.png"
-if (file.exists(pic_name)){
-  knitr::include_graphics(pic_name)
-}
-```
-
-We can further specify the color of the bubbles for each group with the pair option parameter 'bubble color' by inputting it into as an in put parameter in the bubblechart function call:  
-
-```{matlab matlab_plot2_color, eval = FALSE}
-ex1 = bubblechart(x1,y1,sz1, "red");
-```
-
-```{r matlab_bubble2, echo = FALSE, out.width = '55%'}
-pic_name = "./bubble2.png"
-if (file.exists(pic_name)){
-  knitr::include_graphics(pic_name)
-}
-```
-
-
-Or specify the color (in RGB value array) once the plot has been created by assigning its property 'CData':  
-
-```{matlab matlab_plot2_color_rgb, eval = FALSE}
-ex2 = bubblechart(x1,y1,sz1, "red");
-ex2.CData = [0 0 0];
-```
-
-
-```{r matlab_bubble3, echo = FALSE, out.width = '55%'}
-pic_name = "./bubble3.png"
 if (file.exists(pic_name)){
   knitr::include_graphics(pic_name)
 }
@@ -1465,9 +1437,7 @@ title, and (ii) add a new legend title using `plotly::add_annotations`.
 
 ### MATLAB
 
-[Clickable Legend Toolbox](https://www.mathworks.com/matlabcentral/fileexchange/21799-clickablelegend-interactive-highlighting-of-data-in-figures) was downloaded from MATLAB FileExchange in order to make the legend interactive. 
-However, it should be noted that the original toolbox had a small bug associated with a coloring issue in the function (togglevisibility) that had to be corrected. 
-The updated version of the toolbox is available in the [project repository](https://github.com/SkyWang0919/STATS-506-Midterm-Project-02/tree/main/MATLAB/clickable_legend) on github. 
+In this tutorial, we'll go over 2 different ways we can introduce interactive feature with MATLAB. 1.) `Clickable Legend Toolbox` is a MATLAB FileExchange toolbox that allows users to hide or unhide data points by clicking on the grouping variable in the legend. 2.) `plotly-graphing-library-for-matlab` is a toolbox written by Plotly distributed through [github](https://github.com/plotly/plotly-graphing-library-for-matlab), allowing MATLAB users to create and export interactive charts in the web brower by incorporating some of the same functionality of Plotly offered in R and Python. However, it should be noted that the functionality built into MATLAB plotly is much more restricted than those available in R and Python. After the preprocessing step, the tutorial will be divided to show these 2 different methods.
 
 ##### Reading in and pre-processing the data
 
@@ -1497,8 +1467,13 @@ table(1000*covid_hosp.total_tests_per_thousand);
 covid_hosp.Properties.VariableNames{5} = 'total_tests_per_million';
 ```
 
-Clickable Legend functionality can be added to any plots that has a unique legend entry. 
-In our case, we use bar graphs to compare the number of cases, deaths, hospitalization, and testing across the 5 different European countries.
+##### Creating the interactive plot {.tabset}
+
+###### Clickable Legend
+
+[Clickable Legend Toolbox](https://www.mathworks.com/matlabcentral/fileexchange/21799-clickablelegend-interactive-highlighting-of-data-in-figures) was downloaded from MATLAB FileExchange in order to make the legend interactive. It should be noted that the original toolbox had a small bug associated with a coloring issue in the function (togglevisibility) that had to be corrected. The updated version of the toolbox is available in the [project repository](https://github.com/SkyWang0919/STATS-506-Midterm-Project-02/tree/main/MATLAB/clickable_legend) on github. 
+
+Clickable Legend functionality can be added to any plots that has a multiple groups that can create a legend. In our case, we use bar graphs to compare the number of cases, deaths, hospitalization, and testing across 5 different European countries.
 However, it can be added to line plots and scatter plots (by getting rid of the line and specifying marker shape and size).
 
 ```{matlab, eval = FALSE}
@@ -1511,7 +1486,7 @@ figure
 bar(X,Y)
 ```
 
-Once the base plot has been plotted, we add the interactive functionality by calling function 'clickableLegend' and enable the toggling of the visibility of the bars by clicking on the text shown in the legend. In calling the function, we specify the name of each legend entry and we can specify the optional location of the legend, through passing of 'Location' argument pair (in this case 'Location', 'eastoutside'). 
+Once the base plot has been plotted, we add the interactive functionality by calling function 'clickableLegend' and enable the toggling of the visibility of the bars by clicking on the text shown in the legend. In calling the function (`clickableLegend`), we specify the name of each legend entry and the optional location of the legend, through passing argument pair, ('Location', 'eastoutside').
 
 **Note: **The y-axis was log scaled for better comparison of values across different statistics.
 
@@ -1530,12 +1505,70 @@ if (file.exists(pic_name)){
 }
 ```
 
-Unfortunately, MATLAB figure does not retain its interactive functionality through an html export, the example code will have to be executed in MATLAB. The .m script of this code is available in [the project github repository](https://github.com/SkyWang0919/STATS-506-Midterm-Project-02/tree/main/MATLAB).   
+Unfortunately, MATLAB figure created this way does not retain its interactive functionality through an html export, to see it in action, the example code will have to be executed in MATLAB. The .m script of this code is available in [the project github repository](https://github.com/SkyWang0919/STATS-506-Midterm-Project-02/tree/main/MATLAB).   
 
-<span style="color:red">**[To be included in final report]:**</span> 
+######  plotly (MATLAB)
 
-*  Possibly adding a GIF of the interaction in MATLAB? 
-*  Going into the optional parameter settings for clickableLegend?
+To use plotly for MATLAB, we download the github repository as listed above and add it to our MATLAB path. If this is your first time trying to use plotly on MATLAB, you'll have to run a single line command, `plotlysetup('your_username', 'your_api_key')` with the username and API key that you obtain from plotly website. Further instructions are included in the plotly for matlab github repository.
+
+```{matlab_plotly, eval = FALSE}
+addpath('./plotly-graphing-library-for-matlab-master');
+```
+
+To create an interactive grouped bar chart, each of the variables being plotted, in our case, # of `cases`, `deaths`, `hospitalizations`, and `tests`, have to be organized into `structs` with options specifying the overall grouping variable (by country), variable name, type of plot (bar). Additional paramters, like the color of the groups can be added to customize the figure.
+
+```{matlab_plotly1, eval = FALSE}
+countries = covid_hosp.location(1 : nCountries);
+logY = log10(Y);
+
+trace1 = struct(...
+  'x', { countries }, ...
+  'y', logY(:,1), ...
+  'name', 'Total # Cases', ...
+  'marker', struct('color', 'rgb(166, 206, 227)'),...
+  'type', 'bar');
+trace2 = struct(...
+  'x', { countries }, ...
+  'y', logY(:,2), ...
+  'name', 'Total # Deaths', ...
+  'marker', struct('color', 'rgb(29, 124, 180)'),...
+  'type', 'bar');
+trace3 = struct(...
+  'x', { countries }, ...
+  'y', logY(:,3), ...
+  'name', 'Total # Hospitalizations', ...
+  'marker', struct('color', 'rgb(178, 223, 138)'),...
+  'type', 'bar');
+trace4 = struct(...
+  'x', { countries }, ...
+  'y', logY(:,4), ...
+  'name', 'Total # Tested', ...
+  'marker', struct('color', 'rgb(52, 164, 44)'),...
+  'type', 'bar');
+```
+
+We finally combine all of the structs for each variable then pass this combined struct array into yet another struct which puts it all together with other parameters like the title, yaxis, xaxis, legend. With the `plotly` function, we generate the figure (within MATLAB window) and are also provided a url for this figure which is automatically uploaded to your plotly account. 
+
+```{matlab_plotly1, eval = FALSE}
+data = {trace1, trace2, trace3, trace4};
+layout = struct('title', ...
+    'Comparison of # of Cases, Deaths, Hospitalizations, and Testing',...
+    'yaxis', struct(...
+      'title', 'log10(# per million)'),...
+    'xaxis', struct(...
+      'title', 'Countries'),...  
+    'barmode', 'group', ...
+    'legend', struct(...
+      'x', 1.0, ...
+      'y', 1.0, ...
+      'bgcolor', 'rgba(255, 255, 255, 0)', ...
+      'bordercolor', 'rgba(255, 255, 255, 0)'));
+response = plotly(data, struct('layout', layout, ...
+    'filename', 'grouped-bar', 'fileopt', 'overwrite'));
+plot_url = response.url;
+```
+
+We can then go to the `plot_url` to export the figure as an html figure on top of the figure generated within MATLAB that is already interactive. 
 
 ### Python
 
