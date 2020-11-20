@@ -8,7 +8,7 @@
 ##    3) Interactive plot
 ## 
 ## Author: Yanyu Long, longyyu@umich.edu
-## Updated: November 12, 2020
+## Updated: November 20, 2020
 
 # 79: -------------------------------------------------------------------------
 
@@ -16,7 +16,7 @@
 library(tidyverse)
 
 # directories: ----------------------------------------------------------------
-data_lib = "E:/git/Stats506_midterm_project/R/data"
+data_lib = "E:/git/Stats506_midterm_project/Data"
 filename_racial = "Race Data Entry - CRDT.csv"
 filename_covid = "owid-covid-data.csv"
 
@@ -194,7 +194,7 @@ plot2_data = read_delim(
 
 ### creating the bubble plot
 plot2_title = paste0(
-  "Total #of Deaths Across Gov. Stringency Index", 
+  "Total # of Deaths Across Gov. Stringency Index", 
   " and Human Development Index"
 )
 
@@ -235,11 +235,6 @@ plot2_data %>%
 
 ## Plot3 (Interactive Plot) -------------------------------------------------------
 ### data input and pre-processing
-variable_list = c(
-  "total_cases", "total_deaths", 
-  "hosp_patients", "total_tests"
-) # this is used to create ordered factor, which will then affect
-# the order of variables displayed in the bar plot
 
 plot3_data = read_delim(
   sprintf("%s/%s", data_lib, filename_covid), 
@@ -274,22 +269,31 @@ plot3_data = read_delim(
     names_to = "variable"
   ) %>%
   mutate(
-    variable = factor(variable, levels = variable_list, ordered = TRUE)
+    variable = factor(
+      variable, 
+      levels = c("total_cases", "total_deaths", 
+                 "hosp_patients", "total_tests"),
+      # add labels so that the legend items in the plot make more sense
+      label = c("Cases", "Deaths", "Hospitalizations", "Tests"),
+      # order the factor levels to control for the order of variables
+      # displayed in the bar plot
+      ordered = TRUE)
   )
 
 
 ### creating the base (static) plot
-plot3_title = "Comparison of Cases, Deaths, Hospitalizations, and Testing"
+plot3_title = "Comparison of # of Cases, Deaths, Hospitalizations, and Testing"
 plot3_base = plot3_data %>%
   ggplot(aes(x = location, y = value,
              fill = variable)) +
   theme_bw() +
   geom_col(position = "dodge", width = .7) +
   scale_fill_brewer(
-    name = "Variable", 
+    name = "Total Number", 
     palette = "Paired"
   ) +
   scale_x_discrete(name = "Countries") +
+  scale_y_continuous(name = "# per Mil.") +
   ggtitle(plot3_title) +
   theme(
     panel.grid.minor = element_blank(),
@@ -299,14 +303,13 @@ plot3_base = plot3_data %>%
 print(plot3_base)
 
 ### creating the interactive plot
-{plot3_base + 
-    scale_y_continuous(name = "# per million")} %>%
+plot3_base %>%
   plotly::ggplotly()
 
 ### transform the y-axis values using a log10 scale
 {plot3_base +
     scale_y_continuous(
-      name = "log10(# per million)", 
+      name = "log10(# per Mil.)", 
       trans = "log10"
     ) + 
     theme(
@@ -316,15 +319,11 @@ print(plot3_base)
   } %>%
   plotly::ggplotly()
 
-# note that when the mouse hovers over a bar
-# the value presented will still be the original value before scaling
-# so we can know the exact value without referencing y-axis labels
-
 ### adjust the legend position in interactive plot
 # note that the legend position is higher than static plots
 # we can move the legend downwards using the following code
 {plot3_base + 
-    scale_y_continuous(name = "log10(# per million)", trans = "log10") +
+    scale_y_continuous(name = "log10(# per Mil.)", trans = "log10") +
     theme(
       axis.text.y = element_blank(),
       legend.title = element_blank() # hide the legend title
@@ -335,7 +334,7 @@ print(plot3_base)
   plotly::layout(legend=list(y=0.8, yanchor="top")) %>% 
   # add the legend title back but to a lower position
   plotly::add_annotations(
-    text="Variable",
+    text="Total Number",
     xref="paper", x=1.02, xanchor="left",
     yref="paper", y=0.8, yanchor="bottom",
     legendtitle=TRUE,
