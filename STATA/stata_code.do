@@ -7,7 +7,7 @@
 *		2) Bubble plot
 *
 * Author: EunSeon Ahn, Yanyu Long, Tianshi Wang 
-* Updated: November 12, 2020
+* Updated: November 20, 2020
 
 // 79: ------------------------------------------------------------------------
 
@@ -21,7 +21,7 @@ cd "E:\git\Stats506_midterm_project\STATA\"  //For local directory accesss
 // Plot1 (Marginal Plot) ------------------------------------------------------
 
 // data prep ------------------------------------------------------------------
-import delimited "data\Race Data Entry - CRDT.csv", ///
+import delimited "..\Data\Race Data Entry - CRDT.csv", ///
   stringcols(1) numericcols(3/28) clear
 
 keep if date == "20201101"
@@ -148,7 +148,7 @@ erase hx_bl.gph
 
 // Plot2 (Bubble Plot) --------------------------------------------------------
 // data prep ------------------------------------------------------------------
-import delimited "data\owid-covid-data.csv", clear
+import delimited "..\Data\owid-covid-data.csv", clear
 
 // keep only relevant variables & data points
 keep if date == "2020-10-20"
@@ -165,12 +165,14 @@ save covid_plot_data, replace
 
 // Creating bubble plot using 'scatter' ---------------------------------------
 use covid_plot_data, clear
+
+// categorize the human_development_index into six groups by continents
 separate human_development_index, by(continent) veryshortlabel
 
 local vars human_development_index? stringency_index ///
       [aw = total_deaths_per_million]
-local symbol O
-local size .75
+local symbol O // solid circles
+local size .75 // make all points smaller (75% of the original size)
 local alpha %30
 local options xscale(range(0 80)) yscale(range(0.32 1)) ///
 			mcolor(red`alpha' blue`alpha' green`alpha' ///
@@ -180,12 +182,12 @@ local options xscale(range(0 80)) yscale(range(0.32 1)) ///
 local graph_title = ("Total # of Deaths Across Gov. Stringency Index " + ///
                      "and Human Development Index")
 scatter `vars', `options' ///
-  legend(label(4 "N. America") label(6 "S. America") ///
-	     subtitle("Continent") position(3) cols(1) ///
-	     region(style(none)) ///
-		) ///
-  title("`graph_title'", size(small)) ///
-  ytitle("Human Development Index") xtitle("Government Stringency Index")
+  legend(subtitle("Continent") position(3) cols(1) ///
+	       region(style(none))) ///
+  title("`graph_title'", size(*.7)) ///
+  ytitle("Human Development Index") xtitle("Government Stringency Index") ///
+  yscale(titlegap(3)) // enlarge the gap between y-axis title and ticks
+                      // to avoid overlap
 
 // graph export stata-bubbleplot.png, replace
 
