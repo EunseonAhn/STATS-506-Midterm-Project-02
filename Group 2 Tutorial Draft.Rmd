@@ -1,7 +1,7 @@
 ---
 title: "STATS 506 Midterm Project"
 author: "[Group2](https://github.com/SkyWang0919/STATS-506-Midterm-Project-02): EunSeon Ahn, Tianshi Wang, Yanyu Long"
-date: "November 19, 2020"
+date: "November 21, 2020"
 output: 
   html_document:
     toc: true
@@ -757,7 +757,7 @@ ah1.Box = 'off';
 ah1.Visible = 'off';
 ah2.Visible = 'off';
 ah2.Box = 'off';
-%ah2.View = [0, -90];
+% ah2.View = [0, -90];
 ```
 
 We finish off by creating a single universal legend for all three plots. Since this will not happen automatically when manually plotting and arranging a marginal histogram.
@@ -1569,6 +1569,8 @@ plot_url = response.url;
 ```
 
 We can then go to the `plot_url` to export the figure as an html figure on top of the figure generated within MATLAB that is already interactive. 
+
+##### {-}
 
 ### Python
 
