@@ -7,7 +7,7 @@
 *		2) Bubble plot
 *
 * Author: EunSeon Ahn, Yanyu Long, Tianshi Wang 
-* Updated: November 20, 2020
+* Updated: November 22, 2020
 
 // 79: ------------------------------------------------------------------------
 
@@ -77,11 +77,11 @@ scatter deaths? cases, `scatter_opt' ///
 
 // create the two marginal histograms
 local hist_opt color(navy%30) bin(30)
-twoway histogram deaths, `hist_opt' fraction ///
+twoway histogram deaths, `hist_opt' freq ///
   `yscale_opt' ysca(alt) horiz fxsize(25) ///
   ytitle("") xlabel(, nogrid) ///
   saving(hy_tr, replace)
-twoway histogram cases, `hist_opt' fraction ///
+twoway histogram cases, `hist_opt' freq ///
   `xscale_opt' xsca(alt) fysize(25) ///
   xtitle("") xlabel(, grid) ylabel(, nogrid) ///
   saving(hx_tr, replace)
@@ -94,7 +94,7 @@ grc1leg hx_tr.gph yx_tr.gph hy_tr.gph, ///
   title("`graph_title'", size(medium)) ///
   legendfrom(yx_tr.gph) position(9)
 
-// graph export stata-marginplot-tr.png, replace
+graph export stata-marginplot-tr.png, replace
 
 // remove the intermediate files from disk
 erase hx_tr.gph
@@ -120,11 +120,11 @@ scatter deaths? cases, `scatter_opt' ///
 
 // create the two marginal histograms
 local hist_opt color(navy%30) bin(30)
-twoway histogram deaths, `hist_opt' fraction ///
+twoway histogram deaths, `hist_opt' freq ///
   `yscale_opt' xsca(alt reverse) horiz fxsize(25) ///
   ytitle("") xlabel(, nogrid) ///
   saving(hy_bl, replace)
-twoway histogram cases, `hist_opt' fraction ///
+twoway histogram cases, `hist_opt' freq ///
   `xscale_opt' ysca(alt reverse) fysize(25) ///
   xtitle("") xlabel(, grid) ylabel(, nogrid) ///
   saving(hx_bl, replace)
@@ -137,7 +137,7 @@ grc1leg hy_bl.gph yx_bl.gph hx_bl.gph, ///
   title("`graph_title'", size(medium)) ///
   legendfrom(yx_bl.gph) position(3)
 
-// graph export stata-marginplot-bl.png, replace
+graph export stata-marginplot-bl.png, replace
 
 // remove the intermediate files from disk
 erase hy_bl.gph
