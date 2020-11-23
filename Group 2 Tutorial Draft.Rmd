@@ -1,11 +1,12 @@
 ---
 title: "STATS 506 Midterm Project"
 author: "[Group2](https://github.com/SkyWang0919/STATS-506-Midterm-Project-02): EunSeon Ahn, Tianshi Wang, Yanyu Long"
-date: "November 21, 2020"
+date: "November 23, 2020"
 output: 
   html_document:
     toc: true
     toc_depth: 2
+    highlight: pygments
 ---
 
 ```{css, include = TRUE, echo = FALSE}
@@ -27,6 +28,10 @@ h3{ /* Header 3 */
 h5{ /* Header 5 */
   font-size: 18px;
   text-decoration: underline;
+}
+h6{ /* Header 6 */
+  font-size: 16px;
+  font-weight: bold;
 }
 .highlight{ /* Highlighted Text */
   background-color: #d8e8e8;
@@ -52,15 +57,21 @@ pre { /* Scrollable code block */
 ```{r setup, include=FALSE}
 setwd("E:/git/Stats506_private/group_proj/")
 library(tidyverse)
+library(reticulate) # for running Python code
+library(Statamarkdown) # for running STATA code
 knitr::opts_chunk$set(
 	echo = TRUE,
 	fig.align = "center",
 	warning = FALSE,
 	message = FALSE,
-	include = TRUE
+	include = TRUE,
+	engine.path=list(
+	  stata='D:/Program Files/StataMP16/StataMP-64.exe',
+	  python='D:/Anaconda3/python.exe'
+	),
+	cleanlog = TRUE # stop STATA code chunks from echoing code
 )
-library(reticulate) # for python syntax highlighting
-use_python("D:/Anaconda3/python.exe")
+stata_pic_lib = "E:/git/Stats506_midterm_project/STATA/"
 ```
 
 
@@ -140,7 +151,7 @@ In this tutorial, we are using R, STATA, MATLAB and Python to show how these gra
 Software| Relevant Libraries
 ------------ | ------------------------------------------------------------
 R |  `tidyverse` (manipulation of data), `ggplot2` (plotting), `Cowplot` (plotting), `ggplotly` (adding interactive functionality)
-STATA | the built-in command `scatter` and `twoway histogram` used to create the three subplots in marginal plots, and user-written command `grc1leg` is used to combine these subplots into one figure with a command legend. `Scatter` is also used to create the bubble plot.
+STATA | the built-in command `scatter` and `twoway histogram` used to create the three subplots in marginal plots, and user-written command `grc1leg` is used to combine these subplots into one figure with a command legend. `Scatter` is also used to create the bubble plot. In the extended example of multi-categories histograms, user-written commands `tabcount` (calculate frequency over categories), `bihist` and `byhist` (plotting histograms) are also used. 
 Python | `numpy` (manipulation of data) , `pandas` (manipulation of data), `matplotlib` (plotting), `seaborn` (plotting), `plotly` (adding interactive functionality)
 MATLAB | `Clickable Legend Toolbox` (adding interactive functionality) and `subaxis` (allow margin adjustment on subplot) from MATLAB File Exchange, `plotly-graphing-library-for-matlab` (adding interactive functionality) from plotly (`bubblechart` requires ). ** NOTE: `bubblechart` function used in plotting bubblechart requires MATLAB_R2020b.
 
@@ -411,9 +422,15 @@ margin plots for the y axis (although probably unnecessary).
 
 ### STATA
 
+In the STATA example, we will not be using stacked histograms grouped by variable `race` like we do in the other examples. That is because:  
+
+1. generating stacked histograms can be complicated using STATA (we will include a discussion on how to generate histograms with multiple groups  in STATA *right after the tutorial on marginal plots*);
+1. stacked histograms generated using command `graph bar` cannot line up with the scatter plot, even if we explicitly set the x,y-axis range to be the same, while simple histograms generated using `twoway histogram` can line up with the scatter plot.
+
+
 ##### Reading in and pre-processing the data
 
-```{stata, eval = FALSE}
+```{stata stata_plot1_data_prep, eval = FALSE}
 cd "E:\git\Stats506_midterm_project\STATA\"
 import delimited "data\Race Data Entry - CRDT.csv", ///
   stringcols(1) numericcols(3/28) clear
@@ -436,8 +453,16 @@ label values race_int race_label
 drop race
 rename race_int race
 
+// Drop observations with cases or deaths values being NA
+// Keeping these NA values will not affect scatter plot -- either axis being 
+// NA, the scatter won't show. But it does affect histograms since they will 
+// be based on a single variable (cases or deaths)
 drop if cases == . | deaths == .
+
+// categorize deaths (y-axis variable) into four groups by race
 separate deaths, by(race) veryshortlabel
+
+save race_plot_data, replace
 ```
 
 ##### Creating marginal plots
@@ -454,8 +479,8 @@ net install grc1leg, from(http://www.stata.com/users/vwiggins/)
 ```
 
 
-> **Note: **  
-> 
+**Note: **  
+
 > 1.  Run the code chunk from 'local alpha' to 'twoway histogram cases'
 at once to make sure the local variables can be used by all three subplots.
 1.  The optacity settings (e.g. `mcolor(red%30)`) are only available in 
@@ -465,12 +490,18 @@ of solid ones by adding the option `msymbol(Oh)`.
 
 *  Creating top/right margin plots
 
-```{stata, eval = FALSE}
-// create the main plot
-local alpha %30
+```{stata plot1_top_right, eval = FALSE}
+use race_plot_data, clear
+
+// set opacity
+local alpha %30 
+// set x,y-axis limits for both the main plot and the marginal plots
+// otherwise the axis scales might differ across the three plots
 local xscale_opt xscale(range(0 415000)) 
 local yscale_opt yscale(range(0 10500))
 
+// create the main plot
+// set color for the four racial groups
 local scatter_opt mcolor(red`alpha' blue`alpha' green`alpha' purple`alpha')
 scatter deaths? cases, `scatter_opt' ///
   `xscale_opt' `yscale_opt' ///
@@ -479,7 +510,7 @@ scatter deaths? cases, `scatter_opt' ///
   saving(yx_tr, replace)
 
 // create the two marginal histograms
-local hist_opt color(navy%30) bin(30)
+local hist_opt color(navy`alpha') bin(30)
 twoway histogram deaths, `hist_opt' fraction ///
   `yscale_opt' ysca(alt) horiz fxsize(25) ///
   ytitle("") xlabel(, nogrid) ///
@@ -489,7 +520,10 @@ twoway histogram cases, `hist_opt' fraction ///
   xtitle("") xlabel(, grid) ylabel(, nogrid) ///
   saving(hx_tr, replace)
 
-// group the three plots together
+// group the three plots together using 'grc1leg'
+// 'colfirst' asks that the three plots will be displayed down column first
+// 'legendfrom(yx_tr.gph)' specify using the main plot's legend
+// 'position(9)' means putting the legend at 9 o'clock position
 local graph_title = "Total confirmed COVID-19 deaths vs. cases, " + ///
                     "U.S. States (11/01/20)"
 grc1leg hx_tr.gph yx_tr.gph hy_tr.gph, ///
@@ -507,14 +541,14 @@ erase hy_tr.gph
 ```
 
 ```{r stata_marginal1, echo = FALSE, out.width = '60%'}
-pic_name = "./STATA/stata-marginplot-tr.png"
+pic_name = paste0(stata_pic_lib, "stata-marginplot-tr.png")
 if (file.exists(pic_name)){
   knitr::include_graphics(pic_name)
 }
 ```
 
 *  Creating bottom/left margin plots
-```{stata, eval = FALSE}
+```{stata plot1_bottom_left, eval = FALSE}
 // create the main plot
 local alpha %30
 local xscale_opt xscale(range(0 415000)) 
@@ -539,7 +573,11 @@ twoway histogram cases, `hist_opt' fraction ///
   xtitle("") xlabel(, grid) ylabel(, nogrid) ///
   saving(hx_bl, replace)
 
-// group the three plots together
+// group the three plots together using 'grc1leg'
+// unlike the top-right marginal plot, we do not specify'colfirst' this time
+// so that the three plots will be displayed along row first
+// legendfrom(yx_bl.gph) specify using the main plot's legend
+// position(3) means putting the legend at 3 o'clock position
 local graph_title = "Total confirmed COVID-19 deaths vs. cases, " + ///
                     "U.S. States (11/01/20)"
 grc1leg hy_bl.gph yx_bl.gph hx_bl.gph, ///
@@ -558,11 +596,157 @@ erase hx_bl.gph
 ```
 
 ```{r stata_marginal2, echo = FALSE, out.width = '60%'}
-pic_name = "./STATA/stata-marginplot-bl.png"
+pic_name = paste0(stata_pic_lib, "stata-marginplot-bl.png")
 if (file.exists(pic_name)){
   knitr::include_graphics(pic_name)
 }
 ```
+
+<br>
+
+##### Extension: Generating histograms with multiple groups in STATA
+
+As mentioned above, stacked histograms can be difficult to generate in STATA, and they are not suitable as marginal plots since they cannot properly line up with the main scatter plot.  
+However, as an extended example, we will walk through the code to create a stacked histogram of variable `cases` grouped by `race`, using the racial data `race_plot_data.dta` in the marginal plot examples and the `graph bar` command.  
+
+###### Data and summary statistics
+
+```{stata}
+cd "E:\git\Stats506_midterm_project\STATA\" 
+use race_plot_data, clear
+// check out the data format
+list state race cases in 1/5
+// check out the summary statistics for variable 'cases'
+summarize cases
+```
+
+###### Creating stacked histogram using graph bar
+
+Since the `graph bar` command is not designed for histograms, we need to manually turn the continuous variable `cases` into intervals and store as a categorical variable `cut_cases`. After that, we can calculate the frequency of each intervals and produce the histogram.  
+
+From the output of `summarize cases`, we know that values of `cases` falls 
+in range [74, 401503]. Therefore, we can cut it into 30 intervals from 0 to 402000. 
+
+*Note: since R's library `Statamarkdown` runs each STATA code chunk as an stand-alone .do file, the following code chunks will contain some repetitive code. *  
+
+```{stata}
+cd "E:\git\Stats506_midterm_project\STATA\" 
+use race_plot_data, clear
+// use 'egen ... cut' with option 'at' to turn 'cases' into intervals
+egen cut_cases = cut(cases), at(0(13400)402000)
+list cases cut_cases in 1/10
+```
+
+*Interpretation of `cut_cases`: value 0 represents the range [0, 13400), 
+value 13400 represents the range [13400, 26800), etc. *  
+
+We then use `tabcount` to calculate the number of observations for each level of `cut_cases` and `race`. Install `tabcount` using `ssc install tabcount` if you have not already done that. 
+
+```{stata}
+cd "E:\git\Stats506_midterm_project\STATA\" 
+use race_plot_data, clear
+egen cut_cases = cut(cases), at(0(13400)402000)
+
+quietly tabcount cut_cases race, v1(0(13400)402000) v2(1/4) replace
+list in 1/20
+```
+
+It is important to use `tabcount` here rather than a simple `bysort` command (see the following code chunk). 
+`tabcount cut_cases race, v1(0(13400)402000) v2(1/4)` will preserve every intervals of `cases` from [0, 13400) to [388600, 402000), even if there is no observation in that range. To create a histogram, we will need the zero-frequency intervals.  
+On the other hand, `bysort` only keeps the levels that actually appear in the dataset (with non-zero frequencies), which means the intervals of cases without data points will not be preserved. 
+
+```{stata}
+cd "E:\git\Stats506_private\group_proj\STATA\" 
+use race_plot_data, clear
+egen cut_cases = cut(cases), at(0(13400)402000)
+
+// DO NOT USE THIS METHOD for the histogram!
+bysort cut_cases race: generate freq = _N
+keep cut_cases race freq
+duplicates drop
+list
+```
+
+With the frequency table generated using `tabcount`, we can now use command `graph bar (asis) _freq, over(race) over(cut_cases) asyvar stack` to create the stacked histograms. Option `asyvar` asks that the frequencies be stacked over `race` -- the first over() group.  
+Since the `tabcount` command with option `replace` will replace the current dataset with the frequency table, we can use the `preserve` and `restore` commands to create a snapshot of the current data and switch back to it later.
+
+```{stata, eval = FALSE}
+cd "E:\git\Stats506_private\group_proj\STATA\" 
+use race_plot_data, clear
+egen cut_cases = cut(cases), at(0(13400)402000)
+
+preserve
+quietly tabcount cut_cases race, v1(0(13400)402000) v2(1/4) replace
+graph bar (asis) _freq, over(race, sort(race) descending) ///
+  over(cut_cases, gap(0) label(nolabels)) asyvar stack
+graph export stata-stacked_histogram-graph_bar.png, replace
+restore
+```
+
+```{r stata_graph_bar, echo = FALSE, out.width = '50%'}
+pic_name = "./STATA/stata-stacked_histogram-graph_bar.png"
+if (file.exists(pic_name)){
+  knitr::include_graphics(pic_name)
+}
+```
+
+We can further specify the colors for each racial group: 
+
+```{stata, eval = FALSE}
+cd "E:\git\Stats506_private\group_proj\STATA\" 
+use race_plot_data, clear
+egen cut_cases = cut(cases), at(0(13400)402000)
+
+preserve
+quietly tabcount cut_cases race, v1(0(13400)402000) v2(1/4) replace
+local alpha %40
+graph bar (asis) _freq, over(race, sort(race) descending) ///
+  over(cut_cases, gap(0) label(nolabels)) asyvar stack ///
+  bar(1, color(red`alpha')) bar(2, color(blue`alpha')) ///
+  bar(3, color(green`alpha')) bar(4, color(purple`alpha'))
+graph export stata-stacked_histogram-graph_bar-colored.png, replace
+restore
+```
+
+```{r stata_graph_bar_colored, echo = FALSE, out.width = '50%'}
+pic_name = "./STATA/stata-stacked_histogram-graph_bar-colored.png"
+if (file.exists(pic_name)){
+  knitr::include_graphics(pic_name)
+}
+```
+
+###### Much simpler solutions: bihist & byhist
+
+Apart from the stacked histogram, there are two much simpler methods to add another dimension of information in histograms: (i) using command `bihist` to create histograms with *exactly two categories*; and (ii) using command `byhist` to create interlaced histograms with *two or more categories*.  
+
+These user written commands are designed for histograms, which saves us the trouble of computing frequency over intervals. Therefore, the code is much more succinct and easy to remember. 
+
+Install `bihist` and `byhist` using `ssc install bihist` and `ssc install byhist` if you have not already done that.
+
+```{stata, eval = FALSE}
+use race_plot_data, clear
+bihist cases if race == 1 | race == 2, by(race)
+```
+
+```{r stata_bihist, echo = FALSE, out.width = '50%'}
+pic_name = "./STATA/stata-stacked_histogram-bihist.png"
+if (file.exists(pic_name)){
+  knitr::include_graphics(pic_name)
+}
+```
+
+```{stata, eval = FALSE}
+use race_plot_data, clear
+byhist cases, by(race)
+```
+
+```{r stata_byhist, echo = FALSE, out.width = '50%'}
+pic_name = "./STATA/stata-stacked_histogram-byhist.png"
+if (file.exists(pic_name)){
+  knitr::include_graphics(pic_name)
+}
+```
+
 
 ### MATLAB
 
@@ -963,8 +1147,8 @@ plot2_data %>%
 ### STATA
 
 ##### Reading in and pre-processing the data
-```{stata, eval = FALSE}
-import delimited "data\owid-covid-data.csv", clear
+```{stata stata_plot2_data, eval = FALSE}
+import delimited "..\Data\owid-covid-data.csv", clear
 
 // keep only relevant variables & data points
 keep if date == "2020-10-20"
@@ -972,7 +1156,7 @@ keep iso_code continent total_deaths_per_million ///
      stringency_index human_development_index
 drop if continent == "" //drop international world data points
 
-// Drop data pt. if either of the index measures are missing
+// drop observations if any of the index measures are missing
 drop if stringency_index ==. | ///
         human_development_index==. | ///
 		    total_deaths_per_million ==.
@@ -991,12 +1175,14 @@ of solid ones by adding the option `msymbol(Oh)`.
 
 ```{stata, eval = FALSE}
 use covid_plot_data, clear
+
+// categorize the human_development_index into six groups by continents
 separate human_development_index, by(continent) veryshortlabel
 
 local vars human_development_index? stringency_index ///
       [aw = total_deaths_per_million]
-local symbol O
-local size .75
+local symbol O // solid circles
+local size .75 // make all points smaller (75% of the original size)
 local alpha %30
 local options xscale(range(0 80)) yscale(range(0.32 1)) ///
 			mcolor(red`alpha' blue`alpha' green`alpha' ///
@@ -1006,19 +1192,19 @@ local options xscale(range(0 80)) yscale(range(0.32 1)) ///
 local graph_title = ("Total # of Deaths Across Gov. Stringency Index " + ///
                      "and Human Development Index")
 scatter `vars', `options' ///
-  legend(label(4 "N. America") label(6 "S. America") ///
-	     subtitle("Continent") position(3) cols(1) ///
-	     region(style(none)) ///
-		) ///
-  title("`graph_title'", size(small)) ///
-  ytitle("Human Development Index") xtitle("Government Stringency Index")
+  legend(subtitle("Continent") position(3) cols(1) ///
+	       region(style(none))) ///
+  title("`graph_title'", size(*.7)) ///
+  ytitle("Human Development Index") xtitle("Government Stringency Index") ///
+  yscale(titlegap(3)) // enlarge the gap between y-axis title and ticks
+                      // to avoid overlap
 
 // save the plot
 graph export stata-bubbleplot.png, replace
 ```
 
 ```{r stata_bubble, echo = FALSE, out.width = '60%'}
-pic_name = "./STATA/stata-bubbleplot.png"
+pic_name = paste0(stata_pic_lib, "stata-bubbleplot.png")
 if (file.exists(pic_name)){
   knitr::include_graphics(pic_name)
 }
