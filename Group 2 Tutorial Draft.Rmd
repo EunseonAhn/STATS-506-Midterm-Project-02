@@ -150,7 +150,7 @@ In this tutorial, we are using R, STATA, MATLAB and Python to show how these gra
 
 Software| Relevant Libraries
 ------------ | ------------------------------------------------------------
-R |  `tidyverse` (manipulation of data), `ggplot2` (plotting), `Cowplot` (plotting), `ggplotly` (adding interactive functionality)
+R |  `tidyverse` (manipulation of data), `ggplot2` (plotting), `cowplot` (plotting), `ggplotly` (adding interactive functionality)
 STATA | the built-in command `scatter` and `twoway histogram` used to create the three subplots in marginal plots, and user-written command `grc1leg` is used to combine these subplots into one figure with a command legend. `Scatter` is also used to create the bubble plot. In the extended example of multi-categories histograms, user-written commands `tabcount` (calculate frequency over categories), `bihist` and `byhist` (plotting histograms) are also used. 
 Python | `numpy` (manipulation of data) , `pandas` (manipulation of data), `matplotlib` (plotting), `seaborn` (plotting), `plotly` (adding interactive functionality)
 MATLAB | `Clickable Legend Toolbox` (adding interactive functionality) and `subaxis` (allow margin adjustment on subplot) from MATLAB File Exchange, `plotly-graphing-library-for-matlab` (adding interactive functionality) from plotly (`bubblechart` requires ). ** NOTE: `bubblechart` function used in plotting bubblechart requires MATLAB_R2020b.
@@ -163,11 +163,7 @@ MATLAB | `Clickable Legend Toolbox` (adding interactive functionality) and `suba
     *  Add figure/table captions when appropriate, and make sure 
     they are descriptive
     *  Include references, if any
-    *  R & STATA & Python: add more inline comments to help understand the data
-*  Marginal plots
-    *  Add opening text to briefly describe the motivation to use marginal plots
-    *  STATA: Look into the implementation of stacked histogram
-    *  MATLAB: Implement marginal plots with `scatterhistogram`
+    *  Python: add more inline comments to help understand the data
 *  Interactive plots
     *  MATLAB: Add a GIF of the interaction
     *  MATLAB: Go into the optional parameter settings for `clickableLegend`
@@ -175,6 +171,9 @@ MATLAB | `Clickable Legend Toolbox` (adding interactive functionality) and `suba
 ****
 
 ## Marginal Histogram {.tabset .tabset-pills}
+
+A scatter plot is one of the most frequently used visualizations. While it has the benefits of retaining the exact data values and sample size, it can be difficult to see the patterns behind those massive number of data points, such as how distributions vary along the axes and across different categories. The combination of scatter plots and marginal plots (usually histograms or box plots) allows us to exploit the benefits of both plot types and observe the connection between individual data points and their aggregation.  
+In this example, we use a scatter plot to display the # of cases and deaths across the four racial groups, and introduce marginal histograms of both axes to analyze the distribution. 
 
 *  Variables
     *  ID: State & Date
@@ -242,12 +241,13 @@ plot1_data %>%
 ##### Generating the main plot
 
 ```{r plot1_main, fig.height = 3.5, fig.width = 6.5}
-plot1_title = sprintf("%s (%s)",
+plot1_title = sprintf(
+  "%s (%s)",
   "Total confirmed COVID-19 deaths vs. cases, U.S. States",
   format(as.Date(date_picked, "%Y%m%d"), "%m/%d/%y")
 )
-
-palette_picked = "Set1"
+palette_picked = "Set1" # pick a color palette
+# use `RColorBrewer::display.brewer.all()` to check out available palettes
 
 pic1_main = plot1_data %>%
   ggplot(aes(x = Cases, y = Deaths, color = Race)) +
@@ -259,8 +259,7 @@ pic1_main = plot1_data %>%
     plot.title = element_text(hjust = 0.5, size = 12),
     axis.title = element_text(size = 9)
   )
-
-pic1_main
+print(pic1_main)
 ```
 
 ##### Creating marginal plots
@@ -268,44 +267,37 @@ pic1_main
 #### ggExtra::ggMarginal()
 ```{r plot1_a, fig.height = 4.5, fig.width = 8}
 pic1 = pic1_main + 
-  theme(legend.position = "left")
+  theme(legend.position = "left") # move legend to the left side
+  # because ggMarginal() adds margin plots on the right side
 
+# marginal histogram
 ggExtra::ggMarginal(
   pic1, type="histogram", 
   groupColour = TRUE, groupFill = TRUE
 )
 ```
 
-We can create marginal boxplots by setting `type = "boxplot"`: 
+We can create marginal box plots by setting `type = "boxplot"`. 
+The parameter `size` specifies the relative size of the main plot to the marginal ones. A size of 5 means that the main plot is 5x wider and 5x taller than the marginal plots.  
+
 ```{r plot1_a2, fig.height = 5.5, fig.width = 8}
 ggExtra::ggMarginal(
-  pic1, type="boxplot", 
+  pic1, type="boxplot", size = 5,
   groupColour = TRUE, groupFill = TRUE
 )
 ```
 
-We can also specify the relative size of the main plot to the marginal 
-ones using parameter `size`: 
-
-```{r plot1_a3, fig.height = 5.5, fig.width = 8}
-ggExtra::ggMarginal(
-  pic1, type="boxplot", size = 7,
-  groupColour = TRUE, groupFill = TRUE
-)
-```
-
-A size of 5 means that the main plot is 5x wider and 5x taller than the marginal plots.  
 Although `ggMarginal()` provides a easy solution to marginal plots, 
 it is not friendly to customization. For example, we cannot set the 
 two marginal plots to be of different types or of different sizes. 
 Neither can we specify the exact size for marginal plots in 
 units such as inch.  
-Check out the `Cowplot` section for a more flexible solution to 
+Check out the `cowplot` section for a more flexible solution to 
 creating marginal plots in R. 
 
 #### Cowplot
-Using package `Cowplot` to create marginal plots is less succinct, 
-but more flexible. Unlike `ggExtra::ggMarginal`, `Cowplot` allows:
+Using package `cowplot` to create marginal plots is less succinct, 
+but more flexible. Unlike `ggExtra::ggMarginal`, `cowplot` allows:
 
 *  putting the marginal plots on the left/bottom side of the main image;
 *  creating a marginal histogram for one axis, and a box plot/density plot for 
@@ -340,7 +332,8 @@ pic1_yhist
 
 ```{r plot1_b3, fig.height = 4.5, fig.width = 8}
 {pic1_main + 
-  theme(legend.position = "left")
+  theme(legend.position = "left") # move legend to the left
+  # to make room for margin plots
 } %>%
   cowplot::insert_xaxis_grob(
     pic1_xhist, 
@@ -359,18 +352,14 @@ pic1_yhist
 We can move the marginal plots from the top/right side of the 
 original figure to the bottom/left side.  
 To do that, we may want to flip the two previously created marginal 
-histograms using `scale_y_reverse()`: 
-
-```{r plot1_c1, fig.height = 1.5, fig.width = 3}
-pic1_xhist + scale_y_reverse()
-```
-
+histograms using `scale_y_reverse()`.
 To make room for the marginal plots, we can move the x-axis and y-axis to the 
 top/right side of the original figure by setting the `position` parameter 
-in `scale_*_continuous()`: 
+in `scale_*_continuous()`.
 
 ```{r plot1_c2, fig.height = 4.5, fig.width = 8}
 {pic1_main +
+  # move the axis labels to the top/right to make room for margin plots
   scale_x_continuous(position = "top") +
   scale_y_continuous(position = "right")
 } %>%
@@ -387,7 +376,9 @@ in `scale_*_continuous()`:
   cowplot::ggdraw()
 ```
 
-##### Marginal plots of different types
+##### Marginal plots of different types  
+
+Using `cowplot`, we can easily specify different plot types for the x,y-axis marginal plots. Below is the code example to replace the y-axis marginal histogram with a box plot.
 
 ```{r plot1_d, fig.height = 4.5, fig.width = 8}
 pic1_ybox = cowplot::axis_canvas(pic1_main, axis = "y") +
@@ -417,7 +408,6 @@ pic1_ybox = cowplot::axis_canvas(pic1_main, axis = "y") +
 
 We can even call `cowplot::insert_yaxis_grob()` twice to add multiple 
 margin plots for the y axis (although probably unnecessary).
-
 
 
 ### STATA
@@ -604,14 +594,14 @@ if (file.exists(pic_name)){
 
 <br>
 
-##### Extension: Generating histograms with multiple groups in STATA
+##### Extension: Generating histograms with multiple categories in STATA
 
 As mentioned above, stacked histograms can be difficult to generate in STATA, and they are not suitable as marginal plots since they cannot properly line up with the main scatter plot.  
 However, as an extended example, we will walk through the code to create a stacked histogram of variable `cases` grouped by `race`, using the racial data `race_plot_data.dta` in the marginal plot examples and the `graph bar` command.  
 
 ###### Data and summary statistics
 
-```{stata}
+```{stata, comment=''}
 cd "E:\git\Stats506_midterm_project\STATA\" 
 use race_plot_data, clear
 // check out the data format
@@ -629,7 +619,7 @@ in range [74, 401503]. Therefore, we can cut it into 30 intervals from 0 to 4020
 
 *Note: since R's library `Statamarkdown` runs each STATA code chunk as an stand-alone .do file, the following code chunks will contain some repetitive code. *  
 
-```{stata}
+```{stata, comment=''}
 cd "E:\git\Stats506_midterm_project\STATA\" 
 use race_plot_data, clear
 // use 'egen ... cut' with option 'at' to turn 'cases' into intervals
@@ -642,7 +632,7 @@ value 13400 represents the range [13400, 26800), etc. *
 
 We then use `tabcount` to calculate the number of observations for each level of `cut_cases` and `race`. Install `tabcount` using `ssc install tabcount` if you have not already done that. 
 
-```{stata}
+```{stata, comment=''}
 cd "E:\git\Stats506_midterm_project\STATA\" 
 use race_plot_data, clear
 egen cut_cases = cut(cases), at(0(13400)402000)
@@ -655,7 +645,7 @@ It is important to use `tabcount` here rather than a simple `bysort` command (se
 `tabcount cut_cases race, v1(0(13400)402000) v2(1/4)` will preserve every intervals of `cases` from [0, 13400) to [388600, 402000), even if there is no observation in that range. To create a histogram, we will need the zero-frequency intervals.  
 On the other hand, `bysort` only keeps the levels that actually appear in the dataset (with non-zero frequencies), which means the intervals of cases without data points will not be preserved. 
 
-```{stata}
+```{stata, comment=''}
 cd "E:\git\Stats506_private\group_proj\STATA\" 
 use race_plot_data, clear
 egen cut_cases = cut(cases), at(0(13400)402000)
@@ -1108,7 +1098,7 @@ plot2_data %>%
 ##### Creating the bubble plot
 ```{r plot2_1, fig.height = 5, fig.width = 8}
 plot2_title = paste0(
-  "Total #of Deaths Across Gov. Stringency Index", 
+  "Total # of Deaths Across Gov. Stringency Index", 
   " and Human Development Index"
 )
 
@@ -1486,22 +1476,17 @@ library(tidyverse)
 ```{r plot3_data_prep, class.source = "fold-hide"}
 filename_covid = "./data/owid-covid-data.csv"
 
-variable_list = c(
-  "total_cases", "total_deaths", 
-  "hosp_patients", "total_tests"
-) # this is used to create ordered factor, which will then affect
-# the order of variables displayed in the bar plot
-
 plot3_data = read_delim(
   filename_covid, delim = ",",
-  col_types = cols(
-   date = col_character(),
-   iso_code = col_character(),
-   location = col_character(),
-   total_cases_per_million = col_double(),
-   total_deaths_per_million = col_double(),
-   hosp_patients_per_million = col_double(),
-   total_tests_per_thousand = col_double()
+  col_types = cols( # specify the types for our variables of interest
+    # otherwise some will be read in as 'logical' and lead to incorrect values
+    date = col_character(),
+    iso_code = col_character(),
+    location = col_character(),
+    total_cases_per_million = col_double(),
+    total_deaths_per_million = col_double(),
+    hosp_patients_per_million = col_double(),
+    total_tests_per_thousand = col_double()
   )
 ) %>%
   select(date, iso_code, location, 
@@ -1523,7 +1508,15 @@ plot3_data = read_delim(
     names_to = "variable"
   ) %>%
   mutate(
-    variable = factor(variable, levels = variable_list, ordered = TRUE)
+    variable = factor(
+      variable, 
+      levels = c("total_cases", "total_deaths", 
+                 "hosp_patients", "total_tests"),
+      # add labels so that the legend items in the plot make more sense
+      label = c("Cases", "Deaths", "Hospitalizations", "Tests"),
+      # order the factor levels to control for the order of variables
+      # displayed in the bar plot
+      ordered = TRUE)
   )
 
 ```
@@ -1555,20 +1548,18 @@ and double click again to show all characters.
 *  Single click an item to hide / re-display that character. 
 
 ```{r plot3_1, fig.height = 4, fig.width = 7}
-plot3_title = paste0(
-  "Comparison of Cases, Deaths, Hospitalizations, and Testing"
-)
-
+plot3_title = "Comparison of # of Cases, Deaths, Hospitalizations, and Testing"
 plot3_base = plot3_data %>%
   ggplot(aes(x = location, y = value,
              fill = variable)) +
   theme_bw() +
   geom_col(position = "dodge", width = .7) +
   scale_fill_brewer(
-    name = "Variable", 
+    name = "Total Number", 
     palette = "Paired"
   ) +
   scale_x_discrete(name = "Countries") +
+  scale_y_continuous(name = "# per Mil.") +
   ggtitle(plot3_title) +
   theme(
     panel.grid.minor = element_blank(),
@@ -1576,8 +1567,7 @@ plot3_base = plot3_data %>%
     axis.title = element_text(size = 10)
   )
 
-{plot3_base + 
-  scale_y_continuous(name = "# per million")} %>%
+plot3_base %>%
   plotly::ggplotly()
 ```
 
@@ -1585,13 +1575,17 @@ Due to the large data range, we use a log10 scale to transform the y-axis value 
 Note that when the mouse hovers over a bar, the value presented will still be the original value before scaling. That way we can know the exact value without referencing y-axis labels. 
 
 ```{r plot3_2, fig.height = 4, fig.width = 7}
+# transform the y-axis values using a log10 scale
 {plot3_base +
-  scale_y_continuous(name = "log10(# per million)", trans = "log10") + 
-  theme(
-    axis.text.y = element_blank() # remove the y-axis label
-    # because they are not helpful due to the large data range
-  )
-} %>%
+    scale_y_continuous(
+      name = "log10(# per Mil.)", 
+      trans = "log10"
+    ) + 
+    theme(
+      axis.text.y = element_blank() # remove the y-axis label
+      # because they are not helpful due to the large data range
+    )
+  } %>%
   plotly::ggplotly()
 ```
 
@@ -1602,18 +1596,18 @@ title, and (ii) add a new legend title using `plotly::add_annotations`.
 
 ```{r plot3_3, fig.height = 4, fig.width = 7}
 {plot3_base + 
-  scale_y_continuous(name = "log10(# per million)", trans = "log10") +
-  theme(
-    axis.text.y = element_blank(),
-    legend.title = element_blank() # hide the legend title
-  )
-} %>%
+    scale_y_continuous(name = "log10(# per Mil.)", trans = "log10") +
+    theme(
+      axis.text.y = element_blank(),
+      legend.title = element_blank() # hide the legend title
+    )
+  } %>%
   plotly::ggplotly() %>%
   # move legend downwards
   plotly::layout(legend=list(y=0.8, yanchor="top")) %>% 
   # add the legend title back but to a lower position
   plotly::add_annotations(
-    text="Variable",
+    text="Total Number",
     xref="paper", x=1.02, xanchor="left",
     yref="paper", y=0.8, yanchor="bottom",
     legendtitle=TRUE,
@@ -1831,7 +1825,7 @@ htmltools::includeHTML("./ref-PYTHON/interactive.html")
 Data visualization can prove to be an immensely useful tool when trying to understand and organize large amounts of data. 
 In this tutorial, we reviewed a few graphical concepts, marginal histogram, bubble plot, and interactive plots to demonstrate the functionality of these different graphical concepts and how they may facilitate a better grasp of the pattern captured in the data. 
 
-##### Comparison between different software/tools
+##### Comparison across software/tools
 
 The tutorial is carried out in 4 different programming languages (R, STATA, Python, MATLAB). When it comes to data visualization, the two open-source software, [R and Python take the clear lead in flexibility and functionality over the two proprietary languages, STATA and MATLAB]{.highlight}. 
 The open-source nature of R and Python has allowed the development of a vast number of user written libraries capable of producing publication quality plots with large customizability of the plots.   
