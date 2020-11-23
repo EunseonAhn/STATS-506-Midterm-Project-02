@@ -42,6 +42,15 @@ label values race_int race_label
 drop race
 rename race_int race
 
+// Drop observations with cases or deaths values being NA
+// Keeping these NA values will not affect scatter plot -- either axis being 
+// NA, the scatter won't show. But it does affect histograms since they will 
+// be based on a single variable (cases or deaths)
+drop if cases == . | deaths == .
+
+// categorize deaths (y-axis variable) into four groups by race
+separate deaths, by(race) veryshortlabel
+
 save race_plot_data, replace
 
 // Creating marginal plots using 'grc1leg' ------------------------------------
@@ -52,8 +61,6 @@ save race_plot_data, replace
 // net install grc1leg, from(http://www.stata.com/users/vwiggins/)
 
 use race_plot_data, clear
-drop if cases == . | deaths == .
-separate deaths, by(race) veryshortlabel
 
 // version 1: top+right margin -------------------------------------
 // note: 
@@ -63,11 +70,15 @@ separate deaths, by(race) veryshortlabel
 // STATA15 or above. For STATA14 or below, try using hollow circles instead 
 // of solid ones by adding the option `msymbol(Oh)`.
 
-// create the main plot
-local alpha %30
+// set opacity
+local alpha %30 
+// set x,y-axis limits for both the main plot and the marginal plots
+// otherwise the axis scales might differ across the three plots
 local xscale_opt xscale(range(0 415000)) 
 local yscale_opt yscale(range(0 10500))
 
+// create the main plot
+// set color for the four racial groups
 local scatter_opt mcolor(red`alpha' blue`alpha' green`alpha' purple`alpha')
 scatter deaths? cases, `scatter_opt' ///
   `xscale_opt' `yscale_opt' ///
@@ -76,7 +87,7 @@ scatter deaths? cases, `scatter_opt' ///
   saving(yx_tr, replace)
 
 // create the two marginal histograms
-local hist_opt color(navy%30) bin(30)
+local hist_opt color(navy`alpha') bin(30)
 twoway histogram deaths, `hist_opt' freq ///
   `yscale_opt' ysca(alt) horiz fxsize(25) ///
   ytitle("") xlabel(, nogrid) ///
@@ -86,7 +97,10 @@ twoway histogram cases, `hist_opt' freq ///
   xtitle("") xlabel(, grid) ylabel(, nogrid) ///
   saving(hx_tr, replace)
 
-// group the three plots together
+// group the three plots together using 'grc1leg'
+// 'colfirst' asks that the three plots will be displayed down column first
+// 'legendfrom(yx_tr.gph)' specify using the main plot's legend
+// 'position(9)' means putting the legend at 9 o'clock position
 local graph_title = "Total confirmed COVID-19 deaths vs. cases, " + ///
                     "U.S. States (11/01/20)"
 grc1leg hx_tr.gph yx_tr.gph hy_tr.gph, ///
@@ -94,6 +108,7 @@ grc1leg hx_tr.gph yx_tr.gph hy_tr.gph, ///
   title("`graph_title'", size(medium)) ///
   legendfrom(yx_tr.gph) position(9)
 
+// save the final output
 graph export stata-marginplot-tr.png, replace
 
 // remove the intermediate files from disk
@@ -105,11 +120,11 @@ erase hy_tr.gph
 // note: run the code chunk (from 'local alpha' to 'twoway histogram cases')
 // at once to make sure the local variables can be used by all three plots
 
-// create the main plot
 local alpha %30
 local xscale_opt xscale(range(0 415000)) 
 local yscale_opt yscale(range(0 10500))
 
+// create the main plot
 local scatter_opt mcolor(red`alpha' blue`alpha' green`alpha' purple`alpha')
 scatter deaths? cases, `scatter_opt' ///
   `xscale_opt' `yscale_opt' ///
@@ -129,7 +144,11 @@ twoway histogram cases, `hist_opt' freq ///
   xtitle("") xlabel(, grid) ylabel(, nogrid) ///
   saving(hx_bl, replace)
 
-// group the three plots together
+// group the three plots together using 'grc1leg'
+// unlike the top-right marginal plot, we do not specify'colfirst' this time
+// so that the three plots will be displayed along row first
+// legendfrom(yx_bl.gph) specify using the main plot's legend
+// position(3) means putting the legend at 3 o'clock position
 local graph_title = "Total confirmed COVID-19 deaths vs. cases, " + ///
                     "U.S. States (11/01/20)"
 grc1leg hy_bl.gph yx_bl.gph hx_bl.gph, ///
@@ -137,6 +156,7 @@ grc1leg hy_bl.gph yx_bl.gph hx_bl.gph, ///
   title("`graph_title'", size(medium)) ///
   legendfrom(yx_bl.gph) position(3)
 
+// save the final output
 graph export stata-marginplot-bl.png, replace
 
 // remove the intermediate files from disk
@@ -156,7 +176,7 @@ keep iso_code continent total_deaths_per_million ///
      stringency_index human_development_index
 drop if continent == "" //drop international world data points
 
-// Drop data pt. if either of the index measures are missing
+// drop observations if any of the index measures are missing
 drop if stringency_index ==. | ///
         human_development_index==. | ///
 		    total_deaths_per_million ==.
@@ -189,6 +209,7 @@ scatter `vars', `options' ///
   yscale(titlegap(3)) // enlarge the gap between y-axis title and ticks
                       // to avoid overlap
 
-// graph export stata-bubbleplot.png, replace
+// save the plot
+graph export stata-bubbleplot.png, replace
 
 // 79: ------------------------------------------------------------------------
