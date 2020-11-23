@@ -75,7 +75,7 @@ print(pic1_main)
 #### method1 - ggExtra::ggMarginal()
 pic1 = pic1_main + 
   theme(legend.position = "left") # move legend to the left side
-  # because ggMarginal() add margin plots on the right side
+  # because ggMarginal() adds margin plots on the right side
 
 # marginal histogram
 ggExtra::ggMarginal(
@@ -136,9 +136,9 @@ print(pic1_yhist)
 
 # add the margin plots to the bottom/left side of the main plot
 {pic1_main +
+    # move the axis labels to the top/right to make room for margin plots
     scale_x_continuous(position = "top") +
     scale_y_continuous(position = "right")
-    # move the axis labels to the top/right to make room for margin plots
   } %>%
   cowplot::insert_xaxis_grob(
     pic1_xhist + scale_y_reverse(), 
