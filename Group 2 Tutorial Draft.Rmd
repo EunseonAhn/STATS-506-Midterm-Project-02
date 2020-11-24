@@ -832,7 +832,7 @@ sgtitle('Total confirmed COVID-19 deaths vs. cases, U.S. States (11/03/20)')
 ```
 
 ```{r matlab_marginal1, echo = FALSE, out.width = '70%'}
-pic_name = "./Marginal1.png"
+pic_name = "./marginal1.png"
 if (file.exists(pic_name)){
   knitr::include_graphics(pic_name)
 }
@@ -951,6 +951,14 @@ title(lgd, 'Races')
 sgtitle('Total confirmed COVID-19 deaths vs. cases, U.S. States (11/03/20)')
 xlabel('Cases')
 ylabel('Deaths')
+```
+
+
+```{r matlab_marginal2, echo = FALSE, out.width = '70%'}
+pic_name = "./marginal2.png"
+if (file.exists(pic_name)){
+  knitr::include_graphics(pic_name)
+}
 ```
 
 ##### {-}
@@ -1678,14 +1686,14 @@ ylabel('log10(# per million)')
 set(gca, 'YScale', 'log')
 ```
 
-```{r matlab_interactive, echo = FALSE, out.width = '60%'}
-pic_name = "./interactive.png"
+```{r matlab_interactive1, echo = FALSE, out.width = '60%'}
+pic_name = "./interactive1.png"
 if (file.exists(pic_name)){
   knitr::include_graphics(pic_name)
 }
 ```
 
-Unfortunately, MATLAB figure created this way does not retain its interactive functionality through an html export, to see it in action, the example code will have to be executed in MATLAB. The .m script of this code is available in [the project github repository](https://github.com/SkyWang0919/STATS-506-Midterm-Project-02/tree/main/MATLAB).   
+Unfortunately, MATLAB figure created this way does not retain its interactive functionality through an html export, to see it in action, the example code will have to be executed in MATLAB. The .m script of this code is available in [the project github repository](https://github.com/SkyWang0919/STATS-506-Midterm-Project-02/tree/main/MATLAB). Alternatively, follow the instructions using plotly for MATLAB to easily export interactive html figure.
 
 ######  plotly (MATLAB)
 
@@ -1749,6 +1757,10 @@ plot_url = response.url;
 ```
 
 We can then go to the `plot_url` to export the figure as an html figure on top of the figure generated within MATLAB that is already interactive. 
+
+```{r matlab_interactive2, echo = FALSE, out.width = '70%'}
+htmltools::includeHTML("./interactive2.html")
+```
 
 ##### {-}
 
