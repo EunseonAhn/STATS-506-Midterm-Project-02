@@ -85,8 +85,8 @@ h = scatterhist(x, y, 'Group', race_label, 'Style', 'bar', ...
 title(leg,'Race')
 xlabel('Cases')
 ylabel('Deaths')
-sgtitle('Total confirmed COVID-19 deaths vs. cases, U.S. States (11/03/20)') 
-
+sgtitle(['Total confirmed COVID-19 deaths vs. cases, ', ...
+    'U.S. States (11/01/20)'])
 %% Using subplot to create marginal histogram
 % we'll be using subaxis toolbox to minimize the margins between subplots
 addpath('subaxis')
@@ -167,7 +167,7 @@ title(lgd, 'Races')
 
 % Give title and label axis in scatterplot
 sgtitle(['Total confirmed COVID-19 deaths vs. cases, ', ...
-    'U.S. States (11/03/20)'])
+    'U.S. States (11/01/20)'])
 xlabel('Cases')
 ylabel('Deaths')
 
