@@ -1,7 +1,7 @@
 ---
 title: "STATS 506 Midterm Project"
 author: "[Group2](https://github.com/SkyWang0919/STATS-506-Midterm-Project-02): EunSeon Ahn, Tianshi Wang, Yanyu Long"
-date: "November 23, 2020"
+date: "November 24, 2020"
 output: 
   html_document:
     toc: true
@@ -164,9 +164,6 @@ MATLAB | `Clickable Legend Toolbox` (adding interactive functionality) and `suba
     they are descriptive
     *  Include references, if any
     *  Python: add more inline comments to help understand the data
-*  Interactive plots
-    *  MATLAB: Add a GIF of the interaction
-    *  MATLAB: Go into the optional parameter settings for `clickableLegend`
 
 ****
 
@@ -1758,7 +1755,7 @@ plot_url = response.url;
 
 We can then go to the `plot_url` to export the figure as an html figure on top of the figure generated within MATLAB that is already interactive. 
 
-```{r matlab_interactive2, echo = FALSE, out.width = '70%'}
+```{r matlab_interactive2, echo = FALSE}
 htmltools::includeHTML("./interactive2.html")
 ```
 
