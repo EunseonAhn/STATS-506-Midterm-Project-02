@@ -1,7 +1,7 @@
 ---
 title: "STATS 506 Midterm Project"
 author: "[Group2](https://github.com/SkyWang0919/STATS-506-Midterm-Project-02): EunSeon Ahn, Tianshi Wang, Yanyu Long"
-date: "November 24, 2020"
+date: "November 25, 2020"
 output: 
   html_document:
     toc: true
@@ -57,27 +57,31 @@ pre { /* Scrollable code block */
 ```{r setup, include=FALSE}
 setwd("E:/git/Stats506_private/group_proj/")
 library(tidyverse)
+
+Sys.setenv(RETICULATE_PYTHON = 'D:/Anaconda3/python.exe')
 library(reticulate) # for running Python code
 library(Statamarkdown) # for running STATA code
+stata_pic_lib = "E:/git/Stats506_midterm_project/STATA/"
+
 knitr::opts_chunk$set(
 	echo = TRUE,
 	fig.align = "center",
 	warning = FALSE,
 	message = FALSE,
 	include = TRUE,
+	comment='',
 	engine.path=list(
 	  stata='D:/Program Files/StataMP16/StataMP-64.exe',
 	  python='D:/Anaconda3/python.exe'
 	),
 	cleanlog = TRUE # stop STATA code chunks from echoing code
 )
-stata_pic_lib = "E:/git/Stats506_midterm_project/STATA/"
 ```
 
 
 ```{python python_setup, include = FALSE}
 import os
-os.chdir("E:/git/Stats506_midterm_project/")
+os.chdir("E:/git/Stats506_private/group_proj/")
 import pandas as pd
 pd.set_option('max_columns', None)
 ```
@@ -155,16 +159,6 @@ STATA | the built-in command `scatter` and `twoway histogram` used to create the
 Python | `numpy` (manipulation of data) , `pandas` (manipulation of data), `matplotlib` (plotting), `seaborn` (plotting), `plotly` (adding interactive functionality)
 MATLAB | `Clickable Legend Toolbox` (adding interactive functionality) and `subaxis` (allow margin adjustment on subplot) from MATLAB File Exchange, `plotly-graphing-library-for-matlab` (adding interactive functionality) from plotly (`bubblechart` requires ). ** NOTE: `bubblechart` function used in plotting bubblechart requires MATLAB_R2020b.
 
-
-
-### To-do List  
-
-*  General
-    *  Add figure/table captions when appropriate, and make sure 
-    they are descriptive
-    *  Include references, if any
-    *  Python: add more inline comments to help understand the data
-
 ****
 
 ## Marginal Histogram {.tabset .tabset-pills}
@@ -191,7 +185,7 @@ library(tidyverse)
 ##### Reading in and pre-processing the data
 
 ```{r plot1_data_prep, class.source = "fold-hide"}
-filename_racial = "./data/Race Data Entry - CRDT.csv"
+filename_racial = "./Data/Race Data Entry - CRDT.csv"
 racial_data = read_delim(
   filename_racial, delim = ",",
   col_types = cols(
@@ -419,7 +413,7 @@ In the STATA example, we will not be using stacked histograms grouped by variabl
 
 ```{stata stata_plot1_data_prep, eval = FALSE}
 cd "E:\git\Stats506_midterm_project\STATA\"
-import delimited "data\Race Data Entry - CRDT.csv", ///
+import delimited "..\Data\Race Data Entry - CRDT.csv", ///
   stringcols(1) numericcols(3/28) clear
 
 keep if date == "20201101"
@@ -598,7 +592,7 @@ However, as an extended example, we will walk through the code to create a stack
 
 ###### Data and summary statistics
 
-```{stata, comment=''}
+```{stata}
 cd "E:\git\Stats506_midterm_project\STATA\" 
 use race_plot_data, clear
 // check out the data format
@@ -616,7 +610,7 @@ in range [74, 401503]. Therefore, we can cut it into 30 intervals from 0 to 4020
 
 *Note: since R's library `Statamarkdown` runs each STATA code chunk as an stand-alone .do file, the following code chunks will contain some repetitive code. *  
 
-```{stata, comment=''}
+```{stata}
 cd "E:\git\Stats506_midterm_project\STATA\" 
 use race_plot_data, clear
 // use 'egen ... cut' with option 'at' to turn 'cases' into intervals
@@ -629,7 +623,7 @@ value 13400 represents the range [13400, 26800), etc. *
 
 We then use `tabcount` to calculate the number of observations for each level of `cut_cases` and `race`. Install `tabcount` using `ssc install tabcount` if you have not already done that. 
 
-```{stata, comment=''}
+```{stata}
 cd "E:\git\Stats506_midterm_project\STATA\" 
 use race_plot_data, clear
 egen cut_cases = cut(cases), at(0(13400)402000)
@@ -642,7 +636,7 @@ It is important to use `tabcount` here rather than a simple `bysort` command (se
 `tabcount cut_cases race, v1(0(13400)402000) v2(1/4)` will preserve every intervals of `cases` from [0, 13400) to [388600, 402000), even if there is no observation in that range. To create a histogram, we will need the zero-frequency intervals.  
 On the other hand, `bysort` only keeps the levels that actually appear in the dataset (with non-zero frequencies), which means the intervals of cases without data points will not be preserved. 
 
-```{stata, comment=''}
+```{stata}
 cd "E:\git\Stats506_private\group_proj\STATA\" 
 use race_plot_data, clear
 egen cut_cases = cut(cases), at(0(13400)402000)
@@ -962,8 +956,9 @@ if (file.exists(pic_name)){
 
 ### Python
 
-```{python plot1_setup, eval = FALSE}
-# setup
+##### Setting up packages
+
+```{python plot1_setup, eval = TRUE}
 import numpy as np
 import pandas as pd
 import matplotlib.patches as mpatches
@@ -973,23 +968,18 @@ import matplotlib.pyplot as plt
 
 ##### Reading in and pre-processing the data
 
+Before plotting, we organize the csv file *Race Data Entry - CRDT.csv* which contains the data we need for plotting the marginal histogram. We set the data to be **Nov 1, 2020** which stays the same with other parallel examples.
+
 ```{python plot1_data, eval = TRUE}
 df = pd.read_csv('./Data/Race Data Entry - CRDT.csv')
 new = df[df['Date'] == 20201101]
-new = new[['Cases_Asian', 'Cases_Black', 'Cases_LatinX','Cases_White',
-           'Deaths_Asian', 'Deaths_Black', 'Deaths_LatinX', 'Deaths_White']]
-new = new.dropna(axis=0, how='any') # drop all rows that have any NaN values
-new.head()
 ```
 
-##### Creating the marginal plots
-
-*  Plot settings
-
-```{python plot1_plot_setting, eval = FALSE}
-left, width = 0.1, 0.65
-bottom, height = 0.1, 0.65
-spacing = 0.005
+To avoid too much information showed in a single plot, we are focusing on four different racial groups: White, Black, LatinX, and Asian.
+```{python plot1_category, eval = TRUE}
+new = new[['Cases_Asian', 'Cases_Black', 'Cases_LatinX','Cases_White',
+           'Deaths_Asian', 'Deaths_Black', 'Deaths_LatinX', 'Deaths_White']]
+new = new.dropna(axis=0, how='any') # drop rows that have any NaN
 
 x1 = new['Cases_Asian']
 y1 = new['Deaths_Asian']
@@ -999,6 +989,15 @@ x3 = new['Cases_LatinX']
 y3 = new['Deaths_LatinX']
 x4 = [float(x) for x in new['Cases_White']]
 y4 = new['Deaths_White']
+
+```
+
+##### Plot settings 
+Here we specify some important variables which formulate our further plotting. These variables (width, length, spacing, bottom, etc) determine the size of main-plot and marginal-plots. 
+```{python plot1_plot_setting, eval = TRUE}
+left, width = 0.1, 0.65
+bottom, height = 0.1, 0.65
+spacing = 0.005
 
 rect_scatter = [left, bottom, width, height]
 rect_histx = [left, bottom + height + spacing, width, 0.2]
@@ -1011,43 +1010,47 @@ binsy = np.arange(0, ymax + 200, 200)
 ```
 
 *  Creating the marginal plot using `matplotlib`
+We can divide the plotting into 3 steps:
+    * Plotting the main frame. Adding corresponding labels & legends.
+    * Adding the boxes for marginal plots
+    * For each race, making the scatter plot in the main square and histograms  showing marginal distributions in the marginal boxes.
 
-```{python plot1_script, eval = FALSE}
-fig = plt.figure(figsize=(10, 8))
+```{python plot1_script, eval = TRUE, out.width = '85%'}
+fig = plt.figure(figsize=(11, 8))
 ax = fig.add_axes(rect_scatter)
-plt.xlabel('Infectious Number')
-plt.ylabel('Death Number')
+plt.xlabel('Cases');
+plt.ylabel('Deaths');
+plt.title('Total confirmed COVID-19 deaths vs. cases, U.S. States (11/01/20)',
+          x = 0.6, y = -0.16, fontsize = 14);
 plt.grid(color='LightGrey')
-blue_patch = mpatches.Patch(color='blue', label='Asian')
-purple_patch = mpatches.Patch(color='purple', label='Black')
-red_patch = mpatches.Patch(color='red', label='LatinX')
-green_patch = mpatches.Patch(color='green', label='White')
+purple_patch = mpatches.Patch(color='purple', label='Asian')
+blue_patch = mpatches.Patch(color='blue', label='Black')
+green_patch = mpatches.Patch(color='green', label='LatinX')
+red_patch = mpatches.Patch(color='red', label='White')
 ax_histx = fig.add_axes(rect_histx, sharex=ax)
 ax_histy = fig.add_axes(rect_histy, sharey=ax)
-plt.legend(handles=[blue_patch, purple_patch, red_patch, green_patch], loc = 'best')
+plt.legend(handles=[red_patch, blue_patch, green_patch, purple_patch],
+           title='Race', loc = 'best');
 
-ax.scatter(x1, y1, color = 'blue', alpha = 0.5)
-ax_histx.hist(x1, bins=binsx, color = 'blue', alpha = 0.5)
-ax_histy.hist(y1, bins=binsy, orientation='horizontal', color = 'blue', alpha = 0.5)
-ax.scatter(x2, y2, color = 'purple', alpha = 0.5)
-ax_histx.hist(x2, bins=binsx, color = 'purple', alpha = 0.5)
-ax_histy.hist(y2, bins=binsy, orientation='horizontal', color = 'purple', alpha = 0.5)
-ax.scatter(x3, y3, color = 'red', alpha = 0.5)
-ax_histx.hist(x3, bins=binsx, color = 'red', alpha = 0.5)
-ax_histy.hist(y3, bins=binsy, orientation='horizontal', color = 'red', alpha = 0.5)
-ax.scatter(x4, y4, color = 'green', alpha = 0.5)
-ax_histx.hist(x4, bins=binsx, color = 'green', alpha = 0.5)
-ax_histy.hist(y4, bins=binsy, orientation='horizontal', color = 'green', alpha = 0.5)
+ax.scatter(x1, y1, color = 'purple', alpha = 0.5);
+ax_histx.hist(x1, bins=binsx, color = 'purple', alpha = 0.5);
+ax_histy.hist(y1, bins=binsy, orientation='horizontal', 
+              color = 'purple', alpha = 0.5);
+ax.scatter(x2, y2, color = 'blue', alpha = 0.5);
+ax_histx.hist(x2, bins=binsx, color = 'blue', alpha = 0.5);
+ax_histy.hist(y2, bins=binsy, orientation='horizontal', 
+              color = 'blue', alpha = 0.5);
+ax.scatter(x3, y3, color = 'green', alpha = 0.5);
+ax_histx.hist(x3, bins=binsx, color = 'green', alpha = 0.5);
+ax_histy.hist(y3, bins=binsy, orientation='horizontal', 
+              color = 'green', alpha = 0.5);
+ax.scatter(x4, y4, color = 'red', alpha = 0.5);
+ax_histx.hist(x4, bins=binsx, color = 'red', alpha = 0.5);
+ax_histy.hist(y4, bins=binsy, orientation='horizontal', 
+              color = 'red', alpha = 0.5);
 
 plt.show()
-```
-
-
-```{r python_marginal, echo = FALSE, out.width = '60%'}
-pic_name = "./python_marginal.png"
-if (file.exists(pic_name)){
-  knitr::include_graphics(pic_name)
-}
+# plt.savefig("python_marginal.png", dpi=200, bbox_inches='tight')
 ```
 
 ## {- .unlisted .unnumbered}
@@ -1078,7 +1081,7 @@ library(tidyverse)
 ##### Reading in and pre-processing the data
 
 ```{r plot2_data_prep, class.source = "fold-hide"}
-filename_covid = "./data/owid-covid-data.csv"
+filename_covid = "./Data/owid-covid-data.csv"
 plot2_data = read_delim(filename_covid, delim = ",") %>%
   select(date, iso_code, continent, total_deaths_per_million,
          stringency_index, human_development_index) %>%
@@ -1143,6 +1146,7 @@ plot2_data %>%
 
 ##### Reading in and pre-processing the data
 ```{stata stata_plot2_data, eval = FALSE}
+cd "E:\git\Stats506_midterm_project\STATA\"
 import delimited "..\Data\owid-covid-data.csv", clear
 
 // keep only relevant variables & data points
@@ -1357,14 +1361,16 @@ if (file.exists(pic_name)){
 
 ### Python
 
-```{python plot2_setup, eval = FALSE}
-# setup
+In the Python part, we make implement Bubble Plot using two different packages: **seaborn** and **matplotlib**. These two packages make plots by different ways which worth us to have a comparison between them.
+
+##### Set up packages
+
+```{python plot2_setup, eval = TRUE}
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import seaborn as sns
 ```
-
 
 ##### Reading in and pre-processing the data
 
@@ -1374,46 +1380,41 @@ new2 = df2[df2['date'] == '2020-10-20']
 new2 = new2[['continent', 'total_deaths_per_million', 
              'stringency_index', 'human_development_index']]
 new2 = new2.dropna(axis=0, how='any')
-new2.head()
 ```
 
 ##### Creating the bubble plot {.tabset}
 
 ###### Seaborn
+In Seaborn, we are going to use the seaborn.scatterplot function to implement the bubble plot. The **size** parameter takes the value of *total_deaths_per_million* which indicates the radius of each bubble. Here we set the transparency indicator **alpha** to be 40% to help us visualizing bubbles which are overlapped.
 
-```{python plot2_script_seaborn, eval = FALSE}
-plt.figure(figsize=(11, 7))
+```{python plot2_script_seaborn, eval = TRUE, out.width = '85%'}
+# draw plot using seaborn
+plt.figure(figsize=(11, 7));
 sns.scatterplot(x='stringency_index',
                 y='human_development_index',
                 size=new2['total_deaths_per_million'],
-                sizes=(10,1300),
+                sizes = (10, 1250),
                 alpha=0.6,
                 hue=new2['continent'],
-                data=new2)
+                data=new2);
 
 # Put the legend out of the figure
 plt.legend(bbox_to_anchor=(1.03, 1),borderaxespad=0,
            prop={'size':12}, handlelength=2,
-          frameon=False)
-plt.rcParams.update({'legend.labelspacing':1.85})
-plt.xlabel('Stringency Index')
-plt.ylabel('Human Development Index')
-plt.title('Total # of Death Across Stringency Index & Human Development Index')
-plt.grid(color='LightGrey')
-plt.tight_layout()
-plt.savefig("Bubble_plot_Seaborn_color_by_variable_Seaborn_scatterplot.png",
-            format='png',dpi=150)
-```
-
-
-```{r python_bubble_seaborn, echo = FALSE, out.width = '70%'}
-pic_name = "./python_bubble_seaborn.png"
-if (file.exists(pic_name)){
-  knitr::include_graphics(pic_name)
-}
+          frameon=False);
+plt.rcParams.update({'legend.labelspacing':1.7});
+plt.xlabel('Stringency Index');
+plt.ylabel('Human Development Index');
+plt.title('Total # of Death Across Stringency Index & Human Development Index',
+         fontsize = 13);
+plt.grid(color='LightGrey');
+plt.tight_layout();
+plt.show()
+# plt.savefig('python_bubble_seaborn.png', dpi=200, bbox_inches='tight')
 ```
 
 ###### Matplotlib
+Here we use the matplotlib.scatter function to implement the bubble plot. Different from Seaborn, we use a loop here to combine continents with colors.
 
 ```{python plot2_script_matplotlib, eval = FALSE}
 continent_list = ['Africa', 'Asia', 'Europe', 'North America', 'Oceania', 'South America']
@@ -1427,23 +1428,23 @@ for i in range(6):
                              alpha=0.7,
                              label=continent_list[i]))
     
-plt.figure(figsize = (9,8))
+plt.figure(figsize = (11,8));
 plt.scatter('stringency_index',
             'human_development_index',
             s='total_deaths_per_million',
             c=new2['continent'].apply(lambda x: colors[x]),
             alpha=0.7,
-            data=new2)
-plt.grid(color='LightGrey')
-plt.xlabel('Stringency Index')
-plt.ylabel('Human Development Index')
-plt.title('Total # of Death Across Stringency Index & Human Development Index')
-legend1 = plt.legend(handles=l, loc = (1.02,0.78))
+            data=new2);
+plt.grid(color='LightGrey');
+plt.xlabel('Stringency Index');
+plt.ylabel('Human Development Index');
+plt.title('Total # of Death Across Stringency Index & Human Development Index');
+legend1 = plt.legend(handles=l, loc = (1.02,0.78));
 plt.show()
+# plt.savefig('python_bubble_matplotlib.png', dpi=200, bbox_inches='tight')
 ```
 
-
-```{r python_bubble_matplotlib, echo = FALSE, out.width = '70%'}
+```{r python_bubble_matplotlib, echo = FALSE, out.width = '75%'}
 pic_name = "./python_bubble_matplotlib.png"
 if (file.exists(pic_name)){
   knitr::include_graphics(pic_name)
@@ -1479,7 +1480,7 @@ library(tidyverse)
 ##### Reading in and pre-processing the data
 
 ```{r plot3_data_prep, class.source = "fold-hide"}
-filename_covid = "./data/owid-covid-data.csv"
+filename_covid = "./Data/owid-covid-data.csv"
 
 plot3_data = read_delim(
   filename_covid, delim = ",",
@@ -1763,8 +1764,9 @@ htmltools::includeHTML("./interactive2.html")
 
 ### Python
 
-```{python plot3_setup, eval = FALSE}
-# setup
+##### Set up packages
+We use the python package **plotly** to implement our interactive plot. The package contains a lot of helpful functions which enable the user to interact with elements in the plot.
+```{python plot3_setup, eval = TRUE}
 import numpy as np
 import plotly.express as px
 import plotly.offline as offline
@@ -1773,19 +1775,22 @@ import plotly.graph_objs as go
 
 
 ##### Reading in and pre-processing the data
+
+Similar to the Bubble Plot example, we still use the data of **Oct 20, 2020**.
+
 ```{python eval = TRUE}
 # will be using the same dataset as in the bubble plot section
 new3 = df2[df2['date'] == '2020-10-20']
 new3 = new3[['location', 'total_cases_per_million', 'total_deaths_per_million',
              'hosp_patients_per_million',  'total_tests_per_thousand']]
 new3 = new3.dropna(axis=0, how='any')[0:5]
-new3.head()
 ```
 
 
 ##### Creating the interactive plot
+Here we first use the go.Bar() function to create 4 *traces* which represent the 4 categories in our plot: total_cases_per_million, total_deaths_per_million, hosp_patients_per_million, and total_tests_per_thousand. Inside the go.Bar() function, we specify the variable and its color. Later we are going to combine these four traces and make the plot using go.Figure() function. Meanwhile, the corresponding legend for this plot will be generated automatically.
 
-```{python plot3_data, eval = FALSE}
+```{python plot3_data, eval = TRUE}
 branches = new3['location']
 total_cases_per_million = np.log10(new3['total_cases_per_million'])
 total_deaths_per_million = np.log10(new3['total_deaths_per_million'])
@@ -1793,36 +1798,42 @@ hosp_patients_per_million = np.log10(new3['hosp_patients_per_million'])
 total_tests_per_thousand = np.log10(new3['total_tests_per_thousand']*1000)
 
 trace1 = go.Bar(
-   x = branches,
-   y = total_cases_per_million,
-   name = 'total_cases_per_million'
+    x = branches,
+    y = total_cases_per_million,
+    name = 'Cases',
+    marker = {'color': 'lightblue'}
 )
 trace2 = go.Bar(
-   x = branches,
-   y = total_deaths_per_million,
-   name = 'total_deaths_per_million'
+    x = branches,
+    y = total_deaths_per_million,
+    name = 'Deaths',
+    marker = {'color': 'steelblue'}
 )
 trace3 = go.Bar(
-   x = branches,
-   y = hosp_patients_per_million,
-   name = 'hosp_patients_per_million'
+    x = branches,
+    y = hosp_patients_per_million,
+    name = 'Hospitalizations',
+    marker = {'color': 'darkseagreen'}
 )
 trace4 = go.Bar(
-   x = branches,
-   y = total_tests_per_thousand,
-   name = 'total_tests_per_million'
+    x = branches,
+    y = total_tests_per_thousand,
+    name = 'Tests',
+    marker = {'color': 'forestgreen'}
 )
 data = [trace1, trace2, trace3, trace4]
-layout = go.Layout(title = 'Comparison of Cases, Deaths, Hospitalizations, and Testings', barmode = 'group')
+layout = go.Layout(
+    title = 'Comparison of Cases, Deaths, Hospitalizations, and Testing',
+    barmode = 'group')
 fig = go.Figure(data = data, layout = layout)
-fig.update_xaxes(title_text='Countries')
-fig.update_yaxes(title_text='Log10 (# per million)')
-fig.update_layout
-offline.plot(fig, filename='interactive.html')
+fig.update_xaxes(title_text='Countries');
+fig.update_yaxes(title_text='log10(# per Mil.)');
+fig.update_layout;
+offline.plot(fig, filename='interactive.html');
 ```
 
 ```{r python_interactive, echo=FALSE}
-htmltools::includeHTML("./ref-PYTHON/interactive.html")
+htmltools::includeHTML("interactive.html")
 ```
 
 ## {- .unlisted .unnumbered}
