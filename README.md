@@ -1,9 +1,9 @@
 ## STATS 506 FA20 Midterm Group Project 
 ### Group 2 Members & Roles  
 
-* EunSeon Ahn - MATLAB
-* Yanyu Long - R
-* Tianshi Wang - Python
+* [EunSeon Ahn](https://github.com/EunseonAhn/Stats506_public) - MATLAB
+* [Yanyu Long](https://github.com/longyyu/Stats506_public) - R
+* [Tianshi Wang](https://github.com/SkyWang0919/Stats506_public) - Python
 * All - STATA
 
 
@@ -17,7 +17,7 @@ COVID-19 has caused significant disruptions in the daily lives of people around 
 
 ### Tutorial  
 
-* **Draft** &emsp;[Link](https://raw.githack.com/SkyWang0919/STATS-506-Midterm-Project-02/main/Group%202%20Tutorial%20Draft.html)
+* **Final Version** &emsp;[Link](https://raw.githack.com/SkyWang0919/STATS-506-Midterm-Project-02/main/Group%202%20Tutorial%20Draft.html)
 
 
 ### Source Files
